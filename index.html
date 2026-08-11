@@ -1,0 +1,2770 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+  <title>Attendance &amp; Leave Portal</title>
+
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Leave Portal">
+  <meta name="application-name" content="Leave Portal">
+  <meta name="theme-color" content="#c0272d">
+
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="alternate icon" type="image/png" href="icon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Moul&family=Siemreap&family=Battambang:wght@400;700&display=swap"
+    rel="stylesheet">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Moul&display=swap" as="style"
+    onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="portal.css" as="style">
+  <link rel="preload" href="portal.js" as="script">
+
+  <link rel="stylesheet" href="portal.css">
+  <style>
+    /* ── iOS Drum Picker ─────────────────────────────────────── */
+    .drum-col {
+      width: 72px;
+      height: 210px;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      position: relative
+    }
+
+    .drum-col::-webkit-scrollbar {
+      display: none
+    }
+
+    .drum-item {
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      font-weight: 400;
+      color: var(--txt3);
+      scroll-snap-align: center;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: color .12s, font-size .12s, font-weight .12s
+    }
+
+    .drum-item.drum-sel {
+      color: var(--txt);
+      font-size: 23px;
+      font-weight: 700
+    }
+
+    /* ── Notice Type Cards (Pure Icon Minimalist) ──────────────────────────────────── */
+    .nt-type-card {
+      background: transparent;
+      border: none;
+      padding: 16px 0;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .nt-type-card:active {
+      transform: scale(0.94);
+    }
+
+    .nt-card-icon {
+      width: 86px;
+      height: 86px;
+      border-radius: 50%;
+      background: rgba(0, 174, 239, 0.08);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #00AEEF;
+      transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1), background 0.2s ease;
+    }
+
+    .nt-card-icon svg {
+      width: 34px;
+      height: 34px;
+    }
+
+    .nt-type-card:hover .nt-card-icon {
+      transform: scale(1.08);
+      background: rgba(0, 174, 239, 0.15);
+    }
+
+    .nt-card-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--txt);
+      letter-spacing: -0.01em;
+    }
+
+    .nt-card-sub {
+      font-size: 12px;
+      color: var(--txt3);
+      line-height: 1.4
+    }
+
+    /* ── Active type card highlight ─────────────────────────── */
+    .nt-card-active {
+      border-color: #00AEEF !important;
+      background: rgba(0, 174, 239, .07) !important
+    }
+
+    /* ── Staff Info Chip ────────────────────────────────────── */
+    .nt-info-chip {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 9px 16px;
+      font-size: 13px;
+      color: var(--txt2);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 14px
+    }
+
+    .nt-ic-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #00AEEF;
+      flex-shrink: 0
+    }
+
+    /* ── Time segment buttons (HH / MM) ─────────────────────── */
+    .nt-time-seg {
+      font-size: 40px;
+      font-weight: 700;
+      color: var(--txt);
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 14px;
+      cursor: pointer;
+      min-width: 74px;
+      text-align: center;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+      transition: border-color .15s, background .15s;
+      line-height: 1
+    }
+
+    .nt-time-seg:active,
+    .nt-time-seg:focus {
+      border-color: #00AEEF;
+      outline: none;
+      background: rgba(0, 174, 239, .08)
+    }
+
+    /* ── AM/PM toggle buttons ───────────────────────────────── */
+    .nt-ampm-btn {
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 13px;
+      border-radius: 9px;
+      border: 1.5px solid var(--border);
+      background: var(--surface2);
+      color: var(--txt3);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: all .15s;
+      white-space: nowrap
+    }
+
+    .nt-ampm-btn.on {
+      background: #00AEEF;
+      color: #fff;
+      border-color: #00AEEF
+    }
+
+    /* ── Numpad buttons ─────────────────────────────────────── */
+    .nt-np-btn {
+      font-size: 26px;
+      font-weight: 500;
+      padding: 16px 0;
+      border: none;
+      border-radius: 14px;
+      background: var(--surface2);
+      color: var(--txt);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .1s, background .1s;
+      width: 100%
+    }
+
+    .nt-np-btn:active {
+      transform: scale(.92);
+      background: var(--border)
+    }
+
+    .nt-np-fn {
+      font-size: 18px;
+      color: var(--txt2)
+    }
+
+    /* ── Home cards — mobile single column ──────────────────── */
+    @media(max-width:500px) {
+      .home-cards {
+        grid-template-columns: 1fr !important;
+        max-width: 100% !important;
+        gap: 12px !important
+      }
+
+      .hcard {
+        padding: 20px 18px 18px !important
+      }
+
+      .hcard-desc {
+        display: block !important;
+        font-size: 12px
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+   STATUS & HR PAGES — MOBILE OPTIMISATION (≤640px)
+═══════════════════════════════════════════════════════════ */
+    @media(max-width:640px) {
+
+      /* ── Status: force 3-col stat row (Total / Used / Remaining) */
+      #v-status .statrow {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 6px !important
+      }
+
+      #v-status .sbox {
+        padding: 10px 6px !important
+      }
+
+      #v-status .snum {
+        font-size: 20px !important
+      }
+
+      /* ── HR: compact greeting bar ─────────────────────────── */
+      #hr-greet {
+        font-size: 17px !important
+      }
+
+      /* ── HR: nav tabs scroll horizontally, no wrap ─────────── */
+      .ntabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        flex-wrap: nowrap !important
+      }
+
+      .ntabs::-webkit-scrollbar {
+        display: none
+      }
+
+      .ntab {
+        flex: 0 0 auto !important;
+        white-space: nowrap
+      }
+
+      /* ── Shared: twrap must not clip card rows ──────────────── */
+      .twrap:has(#st-tbody),
+      .twrap:has(#st-notice-tbody),
+      .twrap:has(#hr-tbody),
+      .twrap:has(#hr-stbody) {
+        overflow-x: visible !important
+      }
+
+      /* ── Shared: table → block for card layout ──────────────── */
+      table:has(#st-tbody),
+      table:has(#st-notice-tbody),
+      table:has(#hr-tbody),
+      table:has(#hr-stbody) {
+        display: block !important;
+        min-width: 0 !important
+      }
+
+      table:has(#st-tbody) thead,
+      table:has(#st-notice-tbody) thead,
+      table:has(#hr-tbody) thead,
+      table:has(#hr-stbody) thead {
+        display: none !important
+      }
+
+      table:has(#st-tbody) tbody,
+      table:has(#st-notice-tbody) tbody,
+      table:has(#hr-tbody) tbody,
+      table:has(#hr-stbody) tbody {
+        display: block !important
+      }
+
+      /* Each row becomes a card */
+      table:has(#st-tbody) tr,
+      table:has(#st-notice-tbody) tr,
+      table:has(#hr-tbody) tr,
+      table:has(#hr-stbody) tr {
+        display: block !important;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin-bottom: 10px;
+        overflow: hidden;
+      }
+
+      /* Each cell becomes a label–value row */
+      table:has(#st-tbody) td,
+      table:has(#st-notice-tbody) td,
+      table:has(#hr-tbody) td,
+      table:has(#hr-stbody) td {
+        display: flex !important;
+        justify-content: space-between;
+        align-items: center;
+        padding: 9px 14px !important;
+        font-size: 13px !important;
+        border-bottom: 1px solid var(--border);
+        white-space: normal !important;
+        text-align: left !important;
+        gap: 12px;
+      }
+
+      table:has(#st-tbody) td:last-child,
+      table:has(#st-notice-tbody) td:last-child,
+      table:has(#hr-tbody) td:last-child,
+      table:has(#hr-stbody) td:last-child {
+        border-bottom: none
+      }
+
+      /* Shared ::before label style */
+      table:has(#st-tbody) td::before,
+      table:has(#st-notice-tbody) td::before,
+      table:has(#hr-tbody) td::before,
+      table:has(#hr-stbody) td::before {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: var(--txt3);
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      /* ── Status: leave history table ────────────────────────── */
+      table:has(#st-tbody) td:nth-child(1) {
+        display: none !important
+      }
+
+      table:has(#st-tbody) td:nth-child(2)::before {
+        content: "Type"
+      }
+
+      table:has(#st-tbody) td:nth-child(3)::before {
+        content: "From"
+      }
+
+      table:has(#st-tbody) td:nth-child(4)::before {
+        content: "To"
+      }
+
+      table:has(#st-tbody) td:nth-child(5)::before {
+        content: "Days"
+      }
+
+      table:has(#st-tbody) td:nth-child(6)::before {
+        content: "Status"
+      }
+
+      table:has(#st-tbody) td:nth-child(7) {
+        justify-content: flex-end
+      }
+
+      table:has(#st-tbody) td:nth-child(7)::before {
+        display: none
+      }
+
+      /* ── Status: late/early notices table ───────────────────── */
+      table:has(#st-notice-tbody) td:nth-child(1)::before {
+        content: "Type"
+      }
+
+      table:has(#st-notice-tbody) td:nth-child(2)::before {
+        content: "Date"
+      }
+
+      table:has(#st-notice-tbody) td:nth-child(3)::before {
+        content: "Time"
+      }
+
+      table:has(#st-notice-tbody) td:nth-child(4) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 3px
+      }
+
+      table:has(#st-notice-tbody) td:nth-child(4)::before {
+        content: "Reason"
+      }
+
+      /* ── HR: requests table ─────────────────────────────────── */
+      /* hide Req-ID (col1) and Days (col5) — must be explicit since display:flex!important above */
+      table:has(#hr-tbody) td:nth-child(1),
+      table:has(#hr-tbody) td:nth-child(5) {
+        display: none !important
+      }
+
+      table:has(#hr-tbody) td:nth-child(2)::before {
+        content: "Staff"
+      }
+
+      table:has(#hr-tbody) td:nth-child(3)::before {
+        content: "Type"
+      }
+
+      table:has(#hr-tbody) td:nth-child(4)::before {
+        content: "From"
+      }
+
+      table:has(#hr-tbody) td:nth-child(6)::before {
+        content: "Status"
+      }
+
+      table:has(#hr-tbody) td:nth-child(7) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px
+      }
+
+      table:has(#hr-tbody) td:nth-child(7)::before {
+        display: none
+      }
+
+      table:has(#hr-tbody) td:nth-child(7)>div {
+        width: 100% !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important
+      }
+
+      table:has(#hr-tbody) .abtn {
+        font-size: 12px !important;
+        padding: 7px 14px !important;
+        min-height: 34px !important;
+        flex: 1 !important;
+        text-align: center !important
+      }
+
+      /* ── HR: staff registry table ───────────────────────────── */
+      table:has(#hr-stbody) td:nth-child(1) {
+        display: none !important
+      }
+
+      table:has(#hr-stbody) td:nth-child(2)::before {
+        content: "Name"
+      }
+
+      table:has(#hr-stbody) td:nth-child(3)::before {
+        content: "Position"
+      }
+
+      table:has(#hr-stbody) td:nth-child(4)::before {
+        content: "Total"
+      }
+
+      table:has(#hr-stbody) td:nth-child(5)::before {
+        content: "Used"
+      }
+
+      table:has(#hr-stbody) td:nth-child(6)::before {
+        content: "Remaining"
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="app-splash"
+    style="position:fixed;inset:0;z-index:999999;background:var(--bg, #f5f0eb);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s ease,visibility .4s ease;padding:0 24px">
+    <div
+      style="font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:var(--txt, #1a1a1a);letter-spacing:.01em;margin-bottom:4px">
+      Leave Request</div>
+    <div
+      style="font-size:11px;color:var(--txt3, #888);letter-spacing:.08em;text-transform:uppercase;margin-bottom:36px">
+      Getting things ready</div>
+
+    <div class="sp-pipeline">
+      <div class="sp-node sp-active" id="sp-n1">
+        <div class="sp-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+            <line x1="12" y1="18" x2="12.01" y2="18" />
+          </svg>
+        </div>
+        <div class="sp-label">Your Device</div>
+      </div>
+
+      <div class="sp-connector sp-conn-on" id="sp-c1">
+        <div class="sp-line"></div>
+        <div class="sp-dot sp-dot1"></div>
+        <div class="sp-dot sp-dot2"></div>
+        <div class="sp-dot sp-dot3"></div>
+      </div>
+
+      <div class="sp-node" id="sp-n2">
+        <div class="sp-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+            stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="12" cy="5" rx="9" ry="3" />
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+          </svg>
+        </div>
+        <div class="sp-label">Cloud Server</div>
+      </div>
+
+      <div class="sp-connector" id="sp-c2">
+        <div class="sp-line"></div>
+        <div class="sp-dot sp-dot1"></div>
+        <div class="sp-dot sp-dot2"></div>
+        <div class="sp-dot sp-dot3"></div>
+      </div>
+
+      <div class="sp-node" id="sp-n3">
+        <div class="sp-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+            <line x1="8" y1="21" x2="16" y2="21" />
+            <line x1="12" y1="17" x2="12" y2="21" />
+          </svg>
+        </div>
+        <div class="sp-label">Dashboard</div>
+      </div>
+    </div>
+
+    <div id="splash-status"
+      style="margin-top:28px;font-size:13px;color:var(--txt3, #888);letter-spacing:.02em;min-height:20px;transition:opacity .3s ease;text-align:center">
+      Connecting to server...</div>
+  </div>
+
+  <style>
+    @keyframes splash-spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    #app-splash.splash-done {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none
+    }
+
+    .sp-pipeline {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      user-select: none
+    }
+
+    .sp-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: .35;
+      transition: opacity .4s ease, transform .4s ease
+    }
+
+    .sp-node.sp-active {
+      opacity: 1;
+      transform: scale(1.08)
+    }
+
+    .sp-icon {
+      position: relative;
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: var(--surface, #fff);
+      border: 1.5px solid var(--border, #ddd);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--txt3, #888);
+      transition: border-color .4s, color .4s
+    }
+
+    .sp-active .sp-icon {
+      border-color: var(--red, #c0272d);
+      color: var(--red, #c0272d)
+    }
+
+    .sp-circling .sp-icon {
+      animation: splash-glow 1.2s ease-out infinite
+    }
+
+    @keyframes splash-glow {
+      0% {
+        box-shadow: 0 0 0 0 rgba(192, 39, 45, .5)
+      }
+
+      70% {
+        box-shadow: 0 0 0 14px rgba(192, 39, 45, 0)
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(192, 39, 45, 0)
+      }
+    }
+
+    .sp-fast .sp-icon {
+      animation-duration: .4s !important
+    }
+
+    .sp-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--txt3, #888);
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transition: color .4s
+    }
+
+    .sp-active .sp-label {
+      color: var(--txt, #1a1a1a)
+    }
+
+    .sp-connector {
+      width: 48px;
+      height: 2px;
+      position: relative;
+      margin: 0 4px 20px;
+      flex-shrink: 0
+    }
+
+    .sp-line {
+      position: absolute;
+      inset: 0;
+      background: var(--border, #ddd);
+      border-radius: 1px
+    }
+
+    .sp-dot {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--red, #c0272d);
+      top: -2px;
+      opacity: 0;
+      animation: none
+    }
+
+    .sp-conn-on .sp-dot {
+      animation: sp-flow 1.8s ease-in-out infinite
+    }
+
+    .sp-fast .sp-dot {
+      animation-duration: .5s !important
+    }
+
+    .sp-dot1 {
+      animation-delay: 0s
+    }
+
+    .sp-dot2 {
+      animation-delay: .4s
+    }
+
+    .sp-dot3 {
+      animation-delay: .8s
+    }
+
+    @keyframes sp-flow {
+      0% {
+        left: 0;
+        opacity: 0
+      }
+
+      15% {
+        opacity: 1
+      }
+
+      85% {
+        opacity: 1
+      }
+
+      100% {
+        left: calc(100% - 6px);
+        opacity: 0
+      }
+    }
+
+    @media(max-width:400px) {
+      .sp-connector {
+        width: 28px
+      }
+
+      .sp-icon {
+        width: 46px;
+        height: 46px
+      }
+
+      .sp-icon svg {
+        width: 22px;
+        height: 22px
+      }
+
+      .sp-label {
+        font-size: 8px
+      }
+    }
+  </style>
+
+  <script>
+    (function () {
+      var el = document.getElementById('splash-status');
+      if (!el) return;
+
+      function setS(n, c, circ, msg) {
+        for (var j = 1; j <= 3; j++) {
+          var nd = document.getElementById('sp-n' + j);
+          if (nd) {
+            if (j <= n) nd.classList.add('sp-active'); else nd.classList.remove('sp-active');
+            if (j === circ) {
+              nd.classList.add('sp-circling');
+              if (window._splashFastForward) nd.classList.add('sp-fast');
+            } else nd.classList.remove('sp-circling', 'sp-fast');
+          }
+        }
+        var c1 = document.getElementById('sp-c1');
+        var c2 = document.getElementById('sp-c2');
+        if (c1) { if (c === 1) { c1.classList.add('sp-conn-on'); if (window._splashFastForward) c1.classList.add('sp-fast'); } else c1.classList.remove('sp-conn-on', 'sp-fast'); }
+        if (c2) { if (c === 2) { c2.classList.add('sp-conn-on'); if (window._splashFastForward) c2.classList.add('sp-fast'); } else c2.classList.remove('sp-conn-on', 'sp-fast'); }
+
+        el.style.opacity = '0';
+        setTimeout(function () { el.textContent = msg; el.style.opacity = '1'; }, 300);
+      }
+
+      var seq = [
+        function () { setS(1, 0, 1, 'Waking up the backend...'); },
+        function () { setS(1, 1, 0, 'Connecting to cloud...'); },
+        function () { setS(2, 0, 2, 'Fetching staff records...'); },
+        function () { setS(2, 2, 0, 'Downloading team data...'); },
+        function () { setS(3, 0, 3, 'Building your dashboard...'); }
+      ];
+
+      var times = [2500, 1800, 2500, 1800, 2500];
+      var i = 0;
+
+      window._triggerSplashFastForward = function() {
+        if (!window._splashFastForward) {
+          window._splashFastForward = true;
+          if (window._splashMsgInterval) {
+            clearTimeout(window._splashMsgInterval);
+            next();
+          }
+        }
+      };
+
+      function next() {
+        if (window._splashMsgInterval) clearTimeout(window._splashMsgInterval);
+        if (i < seq.length) {
+          seq[i]();
+          var t = times[i];
+          if (window._splashFastForward) t = 350;
+          i++;
+          window._splashMsgInterval = setTimeout(next, t);
+        } else {
+          window._splashAnimDone = true;
+          if (window._splashReadyToDismiss) {
+            window._splashReadyToDismiss();
+          } else {
+            var spEl = document.getElementById('app-splash');
+            if (spEl) {
+              spEl.classList.add('splash-done');
+              setTimeout(function(){ if (spEl && spEl.parentNode) spEl.parentNode.removeChild(spEl); }, 400);
+            }
+          }
+        }
+      }
+
+      next();
+    })();
+  </script>
+
+  <div class="view active" id="v-home">
+    <div class="topbar">
+      <div class="topbar-l">
+        <button class="hr-nav-btn" onclick="goTo('hr')" title="HR Dashboard" style="width:30px; height:30px; padding:0; justify-content:center;"><svg width="14"
+            height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg></button>
+          
+        <div class="tools-dropdown" style="position:relative; display:flex; align-items:center; margin-left:8px;">
+          <style>
+            @keyframes toolsPulse {
+              0% { box-shadow: 0 0 0 0 rgba(0, 174, 239, 0.4); }
+              70% { box-shadow: 0 0 0 6px rgba(0, 174, 239, 0); }
+              100% { box-shadow: 0 0 0 0 rgba(0, 174, 239, 0); }
+            }
+            .tools-btn-fresh {
+              background: linear-gradient(135deg, rgba(0, 174, 239, 0.08), rgba(0, 174, 239, 0.22)) !important;
+              border-color: #00AEEF !important;
+              color: #00AEEF !important;
+              animation: toolsPulse 2s infinite;
+              overflow: visible !important;
+              padding: 6px 14px !important;
+              border-radius: 8px;
+            }
+            #tools-menu {
+              display: none;
+              position: absolute;
+              top: calc(100% + 10px);
+              left: 0;
+              background: var(--surface);
+              border: 1px solid var(--border);
+              border-radius: 12px;
+              padding: 8px;
+              min-width: 240px;
+              box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+              z-index: 999;
+              opacity: 0;
+              transform: translateY(-8px);
+              transition: opacity 0.2s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            }
+            #tools-menu.show-menu {
+              display: block;
+              opacity: 1;
+              transform: translateY(0);
+            }
+            .tool-item {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              padding: 12px 14px;
+              color: var(--txt);
+              text-decoration: none;
+              font-size: 15px;
+              font-weight: 500;
+              border-radius: 8px;
+              transition: all 0.2s ease;
+            }
+            .tool-item:hover {
+              background: rgba(0, 174, 239, 0.08);
+              color: #00AEEF;
+              transform: translateX(4px);
+            }
+            .tool-icon {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+            }
+          </style>
+          <button class="hr-nav-btn tools-btn-fresh" id="tools-toggle-btn" title="Tools" style="position:relative;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 9.36l-7.1 7.1a1 1 0 0 1-1.42 0l-1.42-1.42a1 1 0 0 1 0-1.42l7.1-7.1a6 6 0 0 1 9.36-7.94l-3.77 3.77z"></path>
+            </svg><span style="margin-left:6px; font-weight:700;">Tools</span>
+          </button>
+          <div id="tools-menu">
+          </div>
+        </div>
+        <script>
+          const tools = [
+            { 
+              name: "Proof of Delivery", 
+              url: "https://onlinereq.github.io/Proof-of-Delivery/",
+              icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>'
+            },
+            {
+              name: "Storage Index",
+              url: "https://onlinereq.github.io/Storage-Index/",
+              icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>'
+            }
+          ];
+          const toolsMenu = document.getElementById('tools-menu');
+          tools.forEach(tool => {
+            const a = document.createElement('a');
+            a.className = 'tool-item';
+            a.href = tool.url;
+            a.target = "_blank";
+            a.innerHTML = `<div class="tool-icon">${tool.icon || '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>'} <span>${tool.name}</span></div> 
+                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.4"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>`;
+            toolsMenu.appendChild(a);
+          });
+          
+          document.getElementById('tools-toggle-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (toolsMenu.classList.contains('show-menu')) {
+              toolsMenu.classList.remove('show-menu');
+              setTimeout(() => { if (!toolsMenu.classList.contains('show-menu')) toolsMenu.style.display = 'none'; }, 200);
+            } else {
+              toolsMenu.style.display = 'block';
+              // Force reflow
+              void toolsMenu.offsetWidth;
+              toolsMenu.classList.add('show-menu');
+            }
+          });
+          
+          document.addEventListener('click', () => {
+            if (toolsMenu.classList.contains('show-menu')) {
+              toolsMenu.classList.remove('show-menu');
+              setTimeout(() => { if (!toolsMenu.classList.contains('show-menu')) toolsMenu.style.display = 'none'; }, 200);
+            }
+          });
+        </script>
+      </div>
+      <div class="topbar-r">
+        <div class="lang-bar"><button class="lb on" data-lang="en">EN</button><button class="lb"
+            data-lang="kh">ខ្មែរ</button></div><button class="sync-btn" onclick="syncNow()" id="sync-btn"
+          title="Refresh &amp; Sync"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10" />
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+          </svg></button><button class="theme-btn" onclick="toggleTheme()"></button><span class="ver">v2.4.0</span>
+      </div>
+    </div>
+    <div class="wrap">
+      <div class="home-hero">
+        <div class="home-eyebrow-brand" style="display:none">LOCKTON <span style="color:var(--red)">IBS</span> Insurance Brokers (Cambodia)
+          Co., Ltd.</div>
+        <div class="home-title-req" id="h-ey">Late / Leave Early / Annual Leave Request</div>
+        <div class="home-divider"></div>
+      </div>
+      <div class="home-cards">
+        <div class="hcard" onclick="goTo('request')">
+          <div class="hcard-num">01</div>
+          <div class="hcard-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+              <polyline points="10 9 9 9 8 9" />
+            </svg></div>
+          <div class="hcard-title" id="h-c1t">Request Leave</div>
+          <div class="hcard-desc" id="h-c1d">Submit a new annual or special leave request</div>
+          <div class="hcard-arrow">↗</div>
+        </div>
+        <div class="hcard" onclick="goTo('notice')" style="border-color:rgba(0,174,239,.3)">
+          <div class="hcard-num">02</div>
+          <div class="hcard-icon" style="background:rgba(0,174,239,.1);border-color:rgba(0,174,239,.2)"><svg width="20"
+              height="20" viewBox="0 0 24 24" fill="none" stroke="#00AEEF" stroke-width="1.8" stroke-linecap="round"
+              stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg></div>
+          <div class="hcard-title" id="h-nt-t">Late / Early Notice</div>
+          <div class="hcard-desc" id="h-nt-d">Notify HR of late arrival or early departure</div>
+          <div class="hcard-arrow">↗</div>
+        </div>
+        <div class="hcard" onclick="goTo('status')">
+          <div class="hcard-num">03</div>
+          <div class="hcard-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10" />
+              <line x1="12" y1="20" x2="12" y2="4" />
+              <line x1="6" y1="20" x2="6" y2="14" />
+            </svg></div>
+          <div class="hcard-title" id="h-c2t">My Leave Status</div>
+          <div class="hcard-desc" id="h-c2d">Check remaining days, history and print past requests</div>
+          <div class="hcard-arrow">↗</div>
+        </div>
+
+      </div>
+
+      <div class="home-leave-board" style="margin-top:28px;padding-bottom:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-size:11px;font-weight:700;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase">
+            Who's On Leave</div>
+        </div>
+        <div id="home-leave-list"
+          style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;min-height:56px">
+          <div style="color:var(--txt3);font-size:13px;text-align:center;padding:20px">Loading…</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="view" id="v-notice">
+    <div class="topbar">
+      <div class="topbar-l">
+        <button class="back-btn" onclick="goTo('home')">← Back</button>
+        <span class="topbar-title" id="nt-top-t">Late / Early Notice</span>
+      </div>
+      <div class="topbar-r">
+        <div class="lang-bar"><button class="lb on" data-lang="en">EN</button><button class="lb"
+            data-lang="kh">ខ្មែរ</button></div>
+        <button class="sync-btn" onclick="syncNow()" title="Refresh &amp; Sync"><svg width="14" height="14"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10" />
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+          </svg></button><button class="theme-btn" onclick="toggleTheme()"></button>
+        <span class="ver">v2.4.0</span>
+      </div>
+    </div>
+    <div class="view-body">
+      <div class="page-fullh" style="max-width:940px;margin:0 auto;width:100%">
+
+        <div class="gate fi" id="nt-gate" style="padding-top:20px">
+          <div class="gate-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00AEEF"
+              stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg></div>
+          <div class="gate-title">Staff Select</div>
+          <div class="gate-sub">Type or select your Name</div>
+          <div id="nt-gate-actions" style="display:flex;gap:10px;align-items:stretch;width:100%">
+            <div class="gate-input" style="position:relative;flex:1">
+              <input type="text" id="nt-name-input" placeholder="Type or select Full Name..." autocomplete="off"
+                oninput="onStaffInput('nt-name-input','nt-idfb','nt-list')"
+                onfocus="showStaffDropdown('nt-name-input','nt-list')" style="padding-right:90px">
+              <button class="btn btn-s" style="position:absolute;right:6px;top:6px;bottom:6px;padding:0 12px;height:auto" onclick="ntClearSelectedStaff()" id="nt-gate-change-btn">
+                <span id="nt-gate-change-txt">Change</span>
+              </button>
+              <div id="nt-list" class="staff-dd-list"></div>
+            </div>
+            <button class="btn btn-p" style="padding:0 24px;margin:0;background:#00AEEF;box-shadow:none;min-height:48px;width:auto;white-space:nowrap" onclick="ntVerify()" id="nt-gate-btn">
+              <div class="spinner" id="nt-gate-sp"></div><span>Continue</span>
+            </button>
+          </div>
+          <div class="idfb" id="nt-idfb"></div>
+        </div>
+
+        <div id="nt-type-select" style="display:none" class="fi">
+          <div style="text-align:center;padding:36px 20px 20px">
+            <div style="font-size:27px;font-weight:700;color:var(--txt);font-family:var(--font-disp)">Are you?</div>
+          </div>
+          <div
+            style="max-width:340px;margin:0 auto;padding:0 24px;width:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center">
+            <div class="nt-type-card" id="nt-card-late" onclick="ntOpenPicker('late')" style="width:100%">
+              <div class="nt-card-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00AEEF"
+                  stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg></div>
+              <div class="nt-card-title" style="font-size:17px">Coming Late</div>
+            </div>
+            <div style="font-size:14px;color:var(--txt3);padding:14px 0;font-style:italic">Or</div>
+            <div class="nt-type-card" id="nt-card-early" onclick="ntOpenPicker('early')" style="width:100%">
+              <div class="nt-card-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00AEEF"
+                  stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg></div>
+              <div class="nt-card-title" style="font-size:17px">Requesting Leave Early</div>
+            </div>
+            <div style="margin-top:20px;text-align:center">
+              <button onclick="ntBackToGate()"
+                style="background:none;border:none;color:var(--txt3);font-size:13px;cursor:pointer;padding:6px 10px;text-decoration:underline;text-underline-offset:2px">←
+                Change my information</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="nt-form-screen" style="display:none" class="fi">
+          <div style="max-width:420px;margin:0 auto;padding:16px 20px 40px;box-sizing:border-box;width:100%">
+            <button onclick="ntBackToTypeSelect()"
+              style="background:none;border:none;color:var(--txt3);font-size:13px;cursor:pointer;padding:0 0 20px 0;display:flex;align-items:center;gap:4px">←
+              Back</button>
+
+            <div style="padding:4px 0;margin-bottom:32px;display:flex;flex-direction:column;gap:4px">
+              <div style="font-size:22px;font-weight:700;color:var(--txt);letter-spacing:-0.01em" id="nt-fs-name"></div>
+              <div style="font-size:14px;color:var(--txt3);">ID: <span id="nt-fs-id" style="color:var(--txt2);font-weight:500"></span></div>
+            </div>
+
+            <div
+              style="font-size:11px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px"
+              id="nt-fs-time-lbl">Arrives at</div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+              <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" id="nt-fs-hh" class="nt-time-seg" style="font-size:46px;padding:8px 10px;min-width:80px" placeholder="08" autocomplete="off" aria-label="Hour" onfocus="this.select()" oninput="ntTimeInput('hh', this);ntUpdateDiff()" onblur="ntTimeBlur('hh', this);ntUpdateDiff()" onkeydown="ntTimeKey(event, 'hh', this)">
+              <span style="font-size:40px;font-weight:300;color:var(--txt3);line-height:1;margin-bottom:4px">:</span>
+              <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" id="nt-fs-mm" class="nt-time-seg" style="font-size:46px;padding:8px 10px;min-width:80px" placeholder="00" autocomplete="off" aria-label="Minute" onfocus="this.select()" oninput="ntTimeInput('mm', this);ntUpdateDiff()" onblur="ntTimeBlur('mm', this);ntUpdateDiff()" onkeydown="ntTimeKey(event, 'mm', this)">
+              <div style="display:flex;flex-direction:row;gap:6px;margin-left:8px;background:var(--surface2);padding:6px;border-radius:12px;border:1px solid var(--border)">
+                <button type="button" id="nt-fs-am" onclick="ntFsAmPm('AM')" class="nt-ampm-btn on">AM</button>
+                <button type="button" id="nt-fs-pm" onclick="ntFsAmPm('PM')" class="nt-ampm-btn">PM</button>
+              </div>
+            </div>
+            <div id="nt-time-diff" style="font-size:14px;margin-bottom:32px;background:rgba(0, 174, 239, 0.1);color:#007CA3;padding:12px 16px;border-radius:12px;display:none;line-height:1.4"></div>
+
+            <div
+              style="font-size:11px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">
+              Reason</div>
+            <textarea id="nt-fs-reason" rows="4" placeholder="Brief explanation..."
+              style="width:100%;box-sizing:border-box;resize:none;font-size:15px;padding:13px 14px;border:1.5px solid var(--border);border-radius:12px;background:var(--surface);color:var(--txt);font-family:inherit;line-height:1.55;margin-bottom:28px;display:block"></textarea>
+
+            <button class="btn btn-p" style="background:#00AEEF;box-shadow:none;width:100%;justify-content:center"
+              onclick="ntSubmit()" id="nt-submit-btn">
+              <div class="spinner" id="nt-submit-sp"></div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13" />
+                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+              </svg>
+              Send Notice to HR
+            </button>
+          </div>
+        </div>
+
+        <div id="nt-success"
+          style="display:none;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:40px;text-align:center"
+          class="fi">
+          <div
+            style="width:72px;height:72px;border-radius:50%;background:rgba(0,174,239,.15);border:2px solid #00AEEF;display:flex;align-items:center;justify-content:center">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00AEEF" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
+          </div>
+          <div style="font-family:var(--font-disp);font-size:24px;font-weight:500;color:var(--txt)">Notice Sent!</div>
+          <div style="font-size:14px;color:var(--txt2);white-space:nowrap;line-height:1.65">Your notice has been sent to
+            the HR Telegram group.</div>
+          <button class="btn btn-g" style="margin-top:8px" onclick="goTo('home')">← Back to Home</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="view" id="v-request">
+
+    <div class="topbar">
+      <div class="topbar-l">
+        <button class="back-btn" onclick="goTo('home')">← <span id="r-back">Back</span></button>
+        <span class="topbar-title" id="r-title">Request Leave</span>
+      </div>
+
+      <div class="topbar-steps">
+        <div class="ts" id="rsi1">
+          <div class="ts-dot" id="rsd1">1</div><span class="ts-lbl" id="rsl1">Select Staff</span>
+        </div>
+        <div class="ts-line"></div>
+        <div class="ts" id="rsi2">
+          <div class="ts-dot" id="rsd2">2</div><span class="ts-lbl" id="rsl2">Fill Form</span>
+        </div>
+        <div class="ts-line"></div>
+        <div class="ts" id="rsi3">
+          <div class="ts-dot" id="rsd3">3</div><span class="ts-lbl" id="rsl3">Review</span>
+        </div>
+        <div class="ts-line"></div>
+        <div class="ts" id="rsi4">
+          <div class="ts-dot" id="rsd4">4</div><span class="ts-lbl" id="rsl4">Confirm</span>
+        </div>
+      </div>
+      <div class="topbar-r">
+        <button class="tour-trigger-btn" onclick="startGuidedTour(true)" title="Visual Guide" aria-label="Visual Guide">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          <span id="tour-btn-lbl">Guide</span>
+        </button>
+        <div class="lang-bar"><button class="lb on" data-lang="en">EN</button><button class="lb"
+            data-lang="kh">ខ្មែរ</button></div>
+        <button class="sync-btn" onclick="syncNow()" title="Refresh &amp; Sync"><svg width="14" height="14"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10" />
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+          </svg></button><button class="theme-btn" onclick="toggleTheme()"></button>
+        <span class="ver">v2.4.0</span>
+      </div>
+    </div>
+
+    <div class="view-body" id="req-view-body">
+
+      <div style="flex:1;display:flex;align-items:flex-start;justify-content:center;padding:60px 20px 20px" id="r-gate">
+        <div class="gate fi">
+          <div class="gate-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg></div>
+          <div class="gate-title" id="rg-title">Staff Select</div>
+          <div class="gate-sub" id="rg-sub">Type or select your Full Name</div>
+          <div id="r-gate-actions" style="display:flex;gap:10px;align-items:stretch;width:100%">
+            <div class="gate-input" style="position:relative;flex:1">
+              <input type="text" id="r-name-input" placeholder="Type or select Full Name..." autocomplete="off"
+                oninput="onStaffInput('r-name-input','r-idfb','r-list')"
+                onfocus="showStaffDropdown('r-name-input','r-list')" style="padding-right:90px">
+              <button class="btn btn-s" style="position:absolute;right:6px;top:6px;bottom:6px;padding:0 12px;height:auto" onclick="rClearSelectedStaff()" id="r-gate-change-btn">
+                <span id="r-gate-change-txt">Change</span>
+              </button>
+              <div id="r-list" class="staff-dd-list"></div>
+            </div>
+            <button class="btn btn-p" style="padding:0 24px;margin:0;min-height:48px;width:auto;white-space:nowrap" onclick="rVerify()" id="r-gate-btn">
+              <div class="spinner" id="r-gate-sp"></div><span id="r-gate-txt">Continue</span>
+            </button>
+          </div>
+          <div class="idfb" id="r-idfb"></div>
+        </div>
+      </div>
+
+      <div class="split-layout" id="req-form" style="display:none">
+
+        <div class="split-left req-sidebar">
+
+          <div class="spc-card fi">
+            <div class="spc-header">
+              <div class="spc-avatar" id="rf-avatar">C</div>
+              <div class="spc-info">
+                <div class="spc-name" id="rf-name-disp">—</div>
+                <div class="spc-badge-row">
+                  <span class="spc-id-badge" id="rf-eid-disp">—</span>
+                  <span class="spc-pos-badge" id="rf-pos-disp">—</span>
+                </div>
+              </div>
+            </div>
+
+            <input type="hidden" id="rf-eid">
+            <input type="hidden" id="rf-name">
+            <input type="hidden" id="rf-gen">
+            <input type="hidden" id="rf-pos">
+            <input type="hidden" id="rf-sdate">
+            <input type="hidden" id="rf-sloc" value="Phnom Penh">
+
+            <div class="spc-meta-grid">
+              <div class="spc-meta-item">
+                <span class="spc-meta-lbl" id="rl-gen">Gender</span>
+                <span class="spc-meta-val" id="rf-gen-disp">—</span>
+              </div>
+              <div class="spc-meta-item">
+                <span class="spc-meta-lbl" id="rl-sloc">Location</span>
+                <span class="spc-meta-val" id="rf-sloc-disp">Phnom Penh</span>
+              </div>
+              <div class="spc-meta-item" style="grid-column: span 2">
+                <span class="spc-meta-lbl" id="rl-sdate">Submission Date</span>
+                <span class="spc-meta-val" id="rf-sdate-disp">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="rbalcard-circle fi" id="r-balcard" style="flex:1; justify-content:space-between">
+            <div class="rbal-circle-head">
+              <span class="rbal-title" id="st-bal-title-req">Annual Balance</span>
+            </div>
+
+            <div class="rbal-circle-wrap">
+              <svg class="rbal-svg" viewBox="0 0 120 120" width="120" height="120">
+                <circle class="rbal-track" cx="60" cy="60" r="48" />
+                <circle class="rbal-ring" id="r-bal-circle-bar" cx="60" cy="60" r="48" />
+              </svg>
+              <div class="rbal-circle-content">
+                <div class="rbal-circle-val" id="r-bal-rem-val">18</div>
+                <div class="rbal-circle-lbl" id="r-bal-rem-lbl">Days Left</div>
+              </div>
+            </div>
+
+            <div class="rbal-details" style="width:100%; display:flex; flex-direction:column; gap:8px; margin-top:12px; font-size:13px; color:var(--txt2); background:var(--surface2, #f8f9fa); padding:12px 14px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+              <div style="display:flex; justify-content:space-between; font-weight:600; color:var(--txt);">
+                <span id="r-bal-lbl-tot">Total Annual Days:</span>
+                <span id="r-bal-val-tot">18 Days</span>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span id="r-bal-lbl-anu">Annual Leave Used:</span>
+                <span id="r-bal-val-anu">0 Days</span>
+              </div>
+              <div style="height:1px; background:var(--border); margin:4px 0;"></div>
+              <div style="display:flex; justify-content:space-between; font-weight:700; color:var(--txt);">
+                <span id="r-bal-lbl-rem">Annual Leave Left:</span>
+                <span id="r-bal-val-rem">18 Days</span>
+              </div>
+              <div style="height:1px; background:var(--border); margin:4px 0;"></div>
+              <div style="display:flex; justify-content:space-between; font-weight:600; color:var(--txt);">
+                <span id="r-bal-lbl-spu">Special Leave Used:</span>
+                <span id="r-bal-val-spu">0 Days</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="r-dpill" class="rdpill-card fi" style="display:none">
+            <div class="rdpill-num-wrap">
+              <span id="r-dnum">0</span>
+              <span class="rdpill-days-lbl">DAYS</span>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div id="r-dinfo" class="rdpill-title">Working days requested</div>
+              <div id="r-dsub" class="rdpill-sub">Excluding weekends</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="split-middle req-form-content">
+
+          <div class="req-section-card fi" id="rsc-dates">
+            <div class="rsc-header">
+              <div class="rsc-num">1</div>
+              <div class="rsc-title-wrap">
+                <div class="rsc-title" id="rsh2">Leave Dates &amp; Duration</div>
+                <div class="rsc-sub">Select your start and return dates</div>
+              </div>
+            </div>
+
+            <div class="grid g2" style="margin-top:12px">
+              <div class="field" id="f-rf-from">
+                <label id="rl-from">From Date</label>
+                <div class="date-wrap">
+                  <svg class="date-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                  <input type="text" id="rf-from" readonly placeholder="YYYY-MM-DD" autocomplete="off" onclick="openCalModal('from')" onfocus="openCalModal('from');this.blur()" onchange="autoSetTo();calcDays();clearFieldErr()">
+                  <button type="button" class="cal-ico-btn" onclick="openCalModal('from')" title="Open Calendar" aria-label="Open Calendar">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  </button>
+                </div>
+                <div id="rf-from-err" class="field-msg-err" style="display:none"></div>
+              </div>
+              <div class="field" id="f-rf-to">
+                <label id="rl-to">To Date</label>
+                <div class="date-wrap">
+                  <svg class="date-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                  <input type="text" id="rf-to" readonly placeholder="YYYY-MM-DD" autocomplete="off" onclick="openCalModal('to')" onfocus="openCalModal('to');this.blur()" onchange="validateToDate();calcDays();clearFieldErr()">
+                  <button type="button" class="cal-ico-btn" onclick="openCalModal('to')" title="Open Calendar" aria-label="Open Calendar">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  </button>
+                </div>
+                <div id="rf-to-err" class="field-msg-err" style="display:none"></div>
+              </div>
+            </div>
+
+            <div id="req-date-notice" style="display:none"></div>
+
+            <div id="halfday-row" class="halfday-panel" style="display:none">
+              <div class="hd-header">
+                <span id="hd-section-label">Half Day Adjustment</span>
+              </div>
+
+              <div id="hd-single" style="display:none" class="hd-pill-grid">
+                <label class="hd-pill-opt topt"><input type="radio" name="halfday-single" value="full" checked onclick="calcDays()"><span>Full Day</span></label>
+                <label class="hd-pill-opt topt"><input type="radio" name="halfday-single" value="morning" onclick="calcDays()"><span>Morning Only</span></label>
+                <label class="hd-pill-opt topt"><input type="radio" name="halfday-single" value="afternoon" onclick="calcDays()"><span>Evening Only</span></label>
+              </div>
+
+              <div id="hd-multi" style="display:none">
+                <div class="hd-row-head" style="font-size:11px;font-weight:600;color:var(--txt2);margin-bottom:6px"><span>First Day:</span> <span id="hd-first-date" class="hd-date" style="color:var(--txt);font-weight:700"></span></div>
+                <div class="hd-pill-grid" style="margin-bottom:8px">
+                  <label class="hd-pill-opt topt"><input type="radio" name="halfday-first" value="full" checked onclick="calcDays()"><span>Full Day</span></label>
+                  <label class="hd-pill-opt topt"><input type="radio" name="halfday-first" value="morning" onclick="calcDays()"><span>Morning</span></label>
+                  <label class="hd-pill-opt topt"><input type="radio" name="halfday-first" value="afternoon" onclick="calcDays()"><span>Evening</span></label>
+                </div>
+                <div class="hd-row-head" style="font-size:11px;font-weight:600;color:var(--txt2);margin-bottom:6px"><span>Last Day:</span> <span id="hd-last-date" class="hd-date" style="color:var(--txt);font-weight:700"></span></div>
+                <div class="hd-pill-grid">
+                  <label class="hd-pill-opt topt"><input type="radio" name="halfday-last" value="full" checked onclick="calcDays()"><span>Full Day</span></label>
+                  <label class="hd-pill-opt topt"><input type="radio" name="halfday-last" value="morning" onclick="calcDays()"><span>Morning</span></label>
+                  <label class="hd-pill-opt topt"><input type="radio" name="halfday-last" value="afternoon" onclick="calcDays()"><span>Evening</span></label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="req-section-card fi" id="rsc-type" style="flex:1; display:flex; flex-direction:column">
+            <div class="rsc-header">
+              <div class="rsc-num">2</div>
+              <div class="rsc-title-wrap">
+                <div class="rsc-title" id="rl-type">Choose Leave Type</div>
+                <div class="rsc-sub">Select the category for your request</div>
+              </div>
+            </div>
+
+            <style>
+              .special-leave-modal {
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.55); z-index: 99999;
+                backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+                display: flex; align-items: center; justify-content: center;
+                opacity: 0; visibility: hidden; transition: all 0.2s;
+              }
+              .special-leave-modal.active {
+                opacity: 1; visibility: visible;
+              }
+              .slm-content {
+                background: var(--surface); border: 1px solid var(--border);
+                border-radius: 16px; width: 90%; max-width: 380px;
+                padding: 24px 20px; box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+                transform: scale(0.95); transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+              }
+              .special-leave-modal.active .slm-content {
+                transform: scale(1);
+              }
+              .slm-title {
+                font-size: 19px; font-weight: 700; margin-bottom: 20px; color: var(--txt);
+                text-align: center;
+              }
+              .slm-btn {
+                width: 100%; padding: 14px 20px; margin-bottom: 12px;
+                background: var(--surface); border: 1.5px solid var(--border);
+                border-radius: 12px; font-size: 15.5px; color: var(--txt);
+                cursor: pointer; transition: all 0.2s ease; font-weight: 600;
+                display: flex; align-items: center; justify-content: center;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+              }
+              .slm-btn:hover {
+                background: rgba(0, 174, 239, 0.05); border-color: #00AEEF; color: #00AEEF;
+                transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0, 174, 239, 0.12);
+              }
+              .slm-cancel {
+                background: transparent; border: none; color: var(--txt3);
+                font-size: 14.5px; margin-top: 10px; font-weight: 600;
+                width: 100%; cursor: pointer; padding: 10px; transition: color 0.2s;
+              }
+              .slm-cancel:hover { color: var(--txt); text-decoration: none; }
+              
+              .special-focused label.ltype-card {
+                transition: opacity 0.3s, transform 0.3s;
+              }
+              .special-focused label.ltype-card:not(.sel) {
+                opacity: 0.4;
+                transform: scale(0.98);
+              }
+            </style>
+            <script>
+              function handleSpecialLeave(el) {
+                highlightType(el);
+                calcDays();
+                document.getElementById('rf-other-type').style.display='none';
+                clearFieldErr();
+                
+                // Move modal to body to ensure it breaks out of any parent transforms
+                const modalEl = document.getElementById('special-leave-modal');
+                if (modalEl.parentNode !== document.body) {
+                  document.body.appendChild(modalEl);
+                }
+                
+                // Show modal
+                const g = (window.rStaff && window.rStaff.gender) ? window.rStaff.gender.toLowerCase() : '';
+                const isFemale = g.startsWith('f') || g === 'ស្រី' || g === 'female' || g === 'w';
+                const isMale = g.startsWith('m') || g === 'ប្រុស' || g === 'male' || g === 'man';
+                
+                document.getElementById('slm-btn-maternity').style.display = (isFemale || !isMale) ? 'block' : 'none';
+                document.getElementById('slm-btn-paternity').style.display = (isMale || !isFemale) ? 'block' : 'none';
+                
+                document.getElementById('special-leave-modal').classList.add('active');
+              }
+              
+              function selectSpecialLeaveType(type) {
+                document.getElementById('special-leave-modal').classList.remove('active');
+                document.getElementById('rf-special-type').value = type;
+                document.getElementById('lt4').innerText = "Special Leave (" + type + ")";
+                document.getElementById('ltype-grid').classList.add('special-focused');
+                calcDays();
+              }
+              
+              function cancelSpecialLeaveModal() {
+                document.getElementById('special-leave-modal').classList.remove('active');
+                document.getElementById('rf-special-type').value = "";
+                document.getElementById('lt4').innerText = "Special Leave";
+                document.getElementById('ltype-grid').classList.remove('special-focused');
+                
+                // Uncheck special leave since they cancelled
+                const spRadio = document.querySelector('input[name="ltype"][value="Special Leave"]');
+                if (spRadio) spRadio.checked = false;
+                document.querySelectorAll('.topt').forEach(l => l.classList.remove('sel'));
+                calcDays();
+              }
+
+              function handleNormalLeave(el, isOther) {
+                highlightType(el);
+                
+                // Reset special leave display
+                document.getElementById('rf-special-type').value = "";
+                document.getElementById('lt4').innerText = "Special Leave";
+                document.getElementById('ltype-grid').classList.remove('special-focused');
+                
+                calcDays();
+                document.getElementById('rf-other-type').style.display = isOther ? 'block' : 'none';
+                if (isOther) document.getElementById('rf-other-type').focus();
+                clearFieldErr();
+              }
+            </script>
+            <div class="ltype-card-grid" id="ltype-grid" style="margin:auto 0">
+              <label class="ltype-card topt">
+                <input type="radio" name="ltype" value="Annual Leave" onclick="handleNormalLeave(this, false)">
+                <span class="ltc-txt" id="lt1">Annual Leave</span>
+              </label>
+
+              <label class="ltype-card topt">
+                <input type="radio" name="ltype" value="Sick Leave" onclick="handleNormalLeave(this, false)">
+                <span class="ltc-txt" id="lt2">Sick Leave</span>
+              </label>
+
+              <label class="ltype-card topt">
+                <input type="radio" name="ltype" value="Emergency Leave" onclick="handleNormalLeave(this, false)">
+                <span class="ltc-txt" id="lt3">Emergency Leave</span>
+              </label>
+
+              <label class="ltype-card topt">
+                <input type="radio" name="ltype" value="Special Leave" onclick="handleSpecialLeave(this)">
+                <span class="ltc-txt" id="lt4">Special Leave</span>
+              </label>
+
+              <label class="ltype-card topt">
+                <input type="radio" name="ltype" value="Training / Mission" onclick="handleNormalLeave(this, false)">
+                <span class="ltc-txt" id="lt7">Training / Mission</span>
+              </label>
+
+              <label class="ltype-card topt">
+                <input type="radio" name="ltype" value="Other" onclick="handleNormalLeave(this, true)">
+                <span class="ltc-txt" id="lt6">Other</span>
+              </label>
+            </div>
+
+            <input type="hidden" id="rf-special-type" value="">
+            
+            <div id="special-leave-modal" class="special-leave-modal">
+              <div class="slm-content">
+                <div class="slm-title">Select Special Leave Type</div>
+                <button id="slm-btn-maternity" class="slm-btn" onclick="selectSpecialLeaveType('Maternity Leave')">Maternity Leave</button>
+                <button id="slm-btn-paternity" class="slm-btn" onclick="selectSpecialLeaveType('Paternity Leave')">Paternity Leave</button>
+                <button id="slm-btn-other" class="slm-btn" onclick="selectSpecialLeaveType('Other')">Other</button>
+                <button class="slm-cancel" onclick="cancelSpecialLeaveModal()">Cancel</button>
+              </div>
+            </div>
+
+            <input type="text" id="rf-other-type" placeholder="Please specify leave type..." class="other-type-input" style="display:none" oninput="clearFieldErr()">
+            <div id="rf-type-err" class="field-msg-err" style="display:none"></div>
+            <div id="rf-other-err" class="field-msg-err" style="display:none"></div>
+          </div>
+        </div>
+
+        <div class="split-right req-form-content">
+
+          <div id="req-err-summary" class="req-err-summary" style="display:none">
+            <div class="req-err-head">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <span>Please correct the highlighted fields:</span>
+            </div>
+            <ul id="req-err-list" class="req-err-list"></ul>
+          </div>
+
+            <div class="req-section-card fi req-reason-card" id="rsc-reason" style="flex:1; display:flex; flex-direction:column">
+              <div class="rsc-header">
+                <div class="rsc-num">3</div>
+                <div class="rsc-title-wrap">
+                  <div class="rsc-title" id="rl-rsn">Reason / Description</div>
+                  <div class="rsc-sub">Brief note for HR and management review</div>
+                </div>
+              </div>
+              <textarea id="rf-rsn" rows="4" placeholder="Brief explanation..." class="req-textarea" style="resize:none; flex:1" oninput="clearFieldErr();if(typeof tourNotifyAction==='function')tourNotifyAction('reason')"></textarea>
+              <div id="rf-rsn-err" class="field-msg-err" style="display:none"></div>
+            </div>
+
+          <div class="mobile-wizard-actions" style="display:none; position:relative; z-index:5">
+            <button type="button" class="btn btn-g mw-back" onclick="prevMobileStep()" style="flex:1;padding:14px;font-size:15px;font-weight:600;border-radius:12px">Back</button>
+            <button type="button" class="btn btn-p mw-next" onclick="nextMobileStep()" style="flex:1.5;padding:14px;font-size:15px;font-weight:700;border-radius:12px;box-shadow:0 4px 16px rgba(192,39,45,.25)">Next →</button>
+          </div>
+
+          <div class="req-action-row" style="margin-top:14px;padding:4px 6px 12px 6px;display:flex;gap:12px;align-items:center;position:relative;z-index:5">
+            <button type="button" class="btn btn-g mw-back mobile-only-btn" onclick="prevMobileStep()" style="flex:1;padding:14px;font-size:15px;font-weight:600;border-radius:12px; display:none">Back</button>
+            <button type="button" class="btn btn-p" id="r-prev-btn" onclick="rShowPreview()" style="flex:1.5;padding:14px 20px;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;border-radius:12px;box-shadow:0 4px 16px rgba(192,39,45,.25);min-height:50px">
+              <span id="r-prev-txt">Preview &amp; Continue →</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <div id="guided-tour-overlay" class="tour-overlay" style="display:none">
+        <div id="tour-pulse-ring" class="tour-pulse-ring"></div>
+      </div>
+
+      <div id="review-modal"
+        style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:20px">
+        <div
+          style="background:var(--surface);border-radius:var(--radius-lg);max-width:460px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column">
+          <div
+            style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+            <div>
+              <div style="font-family:var(--font-disp);font-size:18px;font-weight:500;color:var(--txt)">Review Your
+                Request</div>
+              <div style="font-size:11px;color:var(--txt3);margin-top:2px">Check everything before confirming</div>
+            </div>
+            <button onclick="closeReviewModal()"
+              style="background:none;border:none;cursor:pointer;color:var(--txt3);font-size:18px;padding:4px 8px;border-radius:6px;line-height:1">✕</button>
+          </div>
+          <div style="padding:14px 20px;flex:1;overflow-y:auto">
+            <table class="preview-tbl" id="rpr-table" style="background:transparent;width:100%"></table>
+          </div>
+          <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0">
+            <button class="btn btn-g" style="flex:1" onclick="closeReviewModal()">← Edit</button>
+            <button class="btn btn-p" style="flex:2" onclick="rConfirm()" id="r-confirm-btn">
+              <div class="spinner" id="r-con-sp"></div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+                <polyline points="6 9 6 2 18 2 18 9" />
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                <rect x="6" y="14" width="12" height="8" />
+              </svg>
+              <span id="r-con-txt">Confirm &amp; Print</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="r-success" style="display:none;flex:1;flex-direction:column;overflow-y:auto">
+        <div class="rsuc-wrap">
+
+          <div class="rsuc-hero">
+            <div class="rsuc-check"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ok)"
+                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg></div>
+            <div class="rsuc-title">Request Submitted!</div>
+            <div class="rsuc-sub">Your request has been recorded. Print and sign to finalise.</div>
+          </div>
+
+          <div class="rsuc-card rsuc-fi1">
+            <div class="rsuc-card-label">Submitted Request</div>
+            <div id="rsuc-summary" class="rsuc-summary-grid"></div>
+          </div>
+
+          <div class="rsuc-card rsuc-fi2">
+            <div class="rsuc-card-label">Your Leave Balance</div>
+            <div id="rsuc-balance" class="rsuc-bal-row"></div>
+          </div>
+
+          <div class="rsuc-card rsuc-fi3">
+            <div class="rsuc-card-label">Previous Requests</div>
+            <div id="rsuc-history">
+              <div class="rsuc-loading"><svg style="animation:spin .7s linear infinite" width="14" height="14"
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <polyline points="23 4 23 10 17 10" />
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                </svg> Loading history…</div>
+            </div>
+          </div>
+
+          <div class="rsuc-actions rsuc-fi4">
+            <button class="btn btn-g" onclick="rReset()" style="flex:1">← New Request</button>
+            <button class="btn btn-p" onclick="rReprintLast()" style="flex:1"><svg width="13" height="13"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <polyline points="6 9 6 2 18 2 18 9" />
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                <rect x="6" y="14" width="12" height="8" />
+              </svg> Reprint</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="view" id="v-status">
+    <div class="topbar">
+      <div class="topbar-l"><button class="back-btn" onclick="goTo('home')">← <span
+            id="st-back">Back</span></button><span class="topbar-title" id="st-title">My Leave Status</span></div>
+      <div class="topbar-r">
+        <div class="lang-bar"><button class="lb on" data-lang="en">EN</button><button class="lb"
+            data-lang="kh">ខ្មែរ</button></div><button class="sync-btn" onclick="syncNow()"
+          title="Refresh &amp; Sync"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10" />
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+          </svg></button><button class="theme-btn" onclick="toggleTheme()"></button><span class="ver">v2.4.0</span>
+      </div>
+    </div>
+    <div class="view-body">
+      <div class="page-fullh" style="max-width:720px;margin:0 auto;width:100%">
+        <div class="gate fi" id="st-gate" style="padding-top:20px">
+          <div class="gate-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10" />
+              <line x1="12" y1="20" x2="12" y2="4" />
+              <line x1="6" y1="20" x2="6" y2="14" />
+            </svg></div>
+          <div class="gate-title" id="stg-title">View My Leave Status</div>
+          <div class="gate-sub" id="stg-sub">Type or select your Full Name</div>
+          <div id="st-gate-actions" style="display:flex;gap:10px;align-items:stretch;width:100%">
+            <div class="gate-input" style="position:relative;flex:1">
+              <input type="text" id="st-name-input" placeholder="Type or select Full Name..." autocomplete="off"
+                oninput="onStaffInput('st-name-input','st-idfb','st-list')"
+                onfocus="showStaffDropdown('st-name-input','st-list')" style="padding-right:90px">
+              <button class="btn btn-s" style="position:absolute;right:6px;top:6px;bottom:6px;padding:0 12px;height:auto" onclick="stClearSelectedStaff()" id="st-gate-change-btn">
+                <span id="st-gate-change-txt">Change</span>
+              </button>
+              <div id="st-list" class="staff-dd-list"></div>
+            </div>
+            <button class="btn btn-p" style="padding:0 24px;margin:0;min-height:48px;width:auto;white-space:nowrap" onclick="stVerify()" id="st-gate-btn">
+              <div class="spinner" id="st-gate-sp"></div><span id="st-gate-txt">View My Leave</span>
+            </button>
+          </div>
+          <div class="idfb" id="st-idfb"></div>
+        </div>
+        <div id="st-dash" style="display:none">
+          <div class="profcard fi">
+            <div class="avatar" id="st-avatar">–</div>
+            <div>
+              <div class="profname" id="st-name"></div>
+              <div class="profpos" id="st-pos"></div>
+              <div style="font-size:10.5px;color:var(--txt3);margin-top:3px" id="st-eid"></div>
+            </div>
+          </div>
+          <div class="statrow fi" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="sbox">
+              <div class="snum" id="st-tot">–</div>
+              <div class="slbl2" id="st-tot-lbl">Annual Total</div>
+            </div>
+            <div class="sbox hl">
+              <div class="snum" id="st-used">–</div>
+              <div class="slbl2" id="st-used-lbl">Annual Used</div>
+            </div>
+            <div class="sbox gd">
+              <div class="snum" id="st-rem">–</div>
+              <div class="slbl2" id="st-rem-lbl">Annual Left</div>
+            </div>
+            <div class="sbox" style="position:relative;">
+              <div style="position:absolute; left:0; top:15%; height:70%; width:1px; border-left:1px dashed var(--border);"></div>
+              <div class="snum" id="st-sp-used" style="color:#f59e0b;">–</div>
+              <div class="slbl2" id="st-sp-used-lbl">Special Used</div>
+            </div>
+          </div>
+          <div class="balcard fi2">
+            <div style="display:flex;justify-content:space-between;margin-bottom:10px"><span class="ballbl"
+                id="st-bal-title">Annual Leave Balance</span><span style="font-size:12px;color:var(--txt3)"
+                id="st-bal-pct"></span></div>
+            <div class="balbar">
+              <div class="balfill" id="st-bal-fill"></div>
+            </div>
+          </div>
+          <div class="card fi3">
+            <div class="card-head">
+              <div class="s-num"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white"
+                  stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg></div>
+              <div class="card-head-title" id="st-hist-title">Leave History</div>
+              <div style="margin-left:auto;display:flex;align-items:center;gap:6px"><select id="st-hist-yr"
+                  onchange="stSetHistYear(this.value)"
+                  style="font-size:11px;padding:4px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--txt2);cursor:pointer"></select><button
+                  id="st-refresh-btn" onclick="stRefreshAll()" title="Refresh"
+                  style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--txt2);cursor:pointer;padding:0;transition:background .15s,color .15s"><svg
+                    id="st-refresh-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 4 23 10 17 10" />
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                  </svg></button></div>
+            </div>
+            <div class="card-body" style="padding:0">
+              <div class="twrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th id="st-th1">ID</th>
+                      <th id="st-th2">Type</th>
+                      <th id="st-th3">From</th>
+                      <th id="st-th4">To</th>
+                      <th id="st-th5">Days</th>
+                      <th id="st-th6">Status</th>
+                      <th id="st-th7">Print</th>
+                    </tr>
+                  </thead>
+                  <tbody id="st-tbody"></tbody>
+                </table>
+              </div>
+              <div id="st-nodata" style="display:none;text-align:center;padding:32px;color:var(--txt3);font-size:13px">
+              </div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:0;animation:fadeIn .4s ease both;animation-delay:.15s">
+            <div class="card-head">
+              <div class="s-num" style="background:#00AEEF"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                  stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg></div>
+              <div class="card-head-title" id="nt-st-t">Late / Early Notices</div>
+            </div>
+            <div class="card-body" style="padding:0">
+              <div class="twrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Type</th>
+                      <th>Date</th>
+                      <th>Time</th>
+                      <th>Reason</th>
+                    </tr>
+                  </thead>
+                  <tbody id="st-notice-tbody"></tbody>
+                </table>
+              </div>
+              <div id="st-notice-nodata"
+                style="display:none;text-align:center;padding:24px;color:var(--txt3);font-size:13px">No notices found.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="view" id="v-hr">
+    <div class="topbar">
+      <div class="topbar-l">
+        <button class="back-btn" id="hr-back-btn" onclick="goTo('home')">← <span id="hr-back">Back</span></button>
+        <button class="back-btn" id="hr-logout-btn" onclick="hrLogout()" style="display:none"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:4px"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span id="hr-lo-btn-txt">Logout</span></button>
+        <span class="topbar-title" id="hr-pg-title">HR Dashboard</span>
+      </div>
+      <div class="topbar-r">
+        <div class="lang-bar"><button class="lb on" data-lang="en">EN</button><button class="lb"
+            data-lang="kh">ខ្មែរ</button></div><button class="sync-btn" onclick="syncNow()"
+          title="Refresh &amp; Sync"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10" />
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+          </svg></button><button class="theme-btn" onclick="toggleTheme()"></button><span class="ver">v2.4.0</span>
+      </div>
+    </div>
+    <div class="view-body">
+      <div class="page-fullh" style="max-width:960px;margin:0 auto;width:100%">
+        <div class="loginbox fi" id="hr-login">
+          <div class="login-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg></div>
+          <div class="ltitle" id="hr-lt">HR Access</div>
+          <div class="lsub" id="hr-ls">Authorised personnel only</div>
+          <div class="lform">
+            <div class="field"><label id="hr-lu">Username</label><input type="text" id="hr-user" autocomplete="off"
+                onkeydown="if(event.key==='Enter')hrLogin()"></div>
+            <div class="field"><label id="hr-lp">Password</label><input type="password" id="hr-pass"
+                onkeydown="if(event.key==='Enter')hrLogin()"></div>
+            <div class="lerr" id="hr-lerr"></div>
+            <button class="btn btn-p" onclick="hrLogin()" id="hr-lbtn">
+              <div class="spinner" id="hr-lsp"></div><span id="hr-lbtxt">Login</span>
+            </button>
+          </div>
+        </div>
+        <div id="hr-dash" style="display:none">
+          <div id="hr-loading"
+            style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.35);align-items:center;justify-content:center">
+            <div
+              style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 32px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 32px rgba(0,0,0,.18)">
+              <div class="spinner" style="display:block;width:18px;height:18px;border-width:2.5px"></div>
+              <span style="font-size:14px;color:var(--txt2);font-weight:500">Loading data...</span>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+            <div>
+              <div style="font-family:var(--font-disp);font-size:22px;font-weight:500;color:var(--txt)" id="hr-greet">
+                Welcome back</div>
+              <div style="font-size:12px;color:var(--txt2);margin-top:2px" id="hr-gsub">Lockton IBS HR Portal</div>
+            </div>
+          </div>
+          <div class="ntabs">
+            <button class="ntab on" id="nt-req" onclick="hrTab('req')"><span id="hr-nt1">Requests</span></button>
+            <button class="ntab" id="nt-staff" onclick="hrTab('staff')"><span id="hr-nt2">Staff Records</span></button>
+            <button class="ntab" id="nt-attendance" onclick="hrTab('attendance')">Attendance</button>
+            <button class="ntab" id="nt-holidays" onclick="hrTab('holidays')">Holidays</button>
+            <button class="ntab" id="nt-analytics" onclick="hrTab('analytics')">Analytics</button>
+            <button class="ntab" id="nt-export" onclick="hrTab('export')">Export Report</button>
+          </div>
+          <div id="hr-tab-req">
+            <div class="sumrow fi">
+              <div class="smbox">
+                <div class="smnum" id="hr-st">–</div>
+                <div class="smlbl" id="hr-st-lbl">Total</div>
+              </div>
+              <div class="smbox sp">
+                <div class="smnum" id="hr-sp">–</div>
+                <div class="smlbl" id="hr-sp-lbl">Pending</div>
+              </div>
+              <div class="smbox sa">
+                <div class="smnum" id="hr-sa">–</div>
+                <div class="smlbl" id="hr-sa-lbl">Approved</div>
+              </div>
+              <div class="smbox sr">
+                <div class="smnum" id="hr-sr">–</div>
+                <div class="smlbl" id="hr-sr-lbl">Rejected</div>
+              </div>
+            </div>
+            <div class="ftabs fi">
+              <button class="ftab on" onclick="hrFilter('All')" id="hft-all">All</button>
+              <button class="ftab" onclick="hrFilter('Pending')" id="hft-pend">Pending</button>
+              <button class="ftab" onclick="hrFilter('Approved')" id="hft-appr">Approved</button>
+              <button class="ftab" onclick="hrFilter('Rejected')" id="hft-rej">Rejected</button>
+            </div>
+            <div class="card fi2">
+              <div class="card-body" style="padding:0">
+                <div class="twrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th id="hr-th1">Req ID</th>
+                        <th id="hr-th2">Staff</th>
+                        <th id="hr-th3">Type</th>
+                        <th id="hr-th4">From</th>
+                        <th id="hr-th5">Days</th>
+                        <th id="hr-th6">Status</th>
+                        <th id="hr-th7">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="hr-tbody"></tbody>
+                  </table>
+                </div>
+                <div id="hr-nodata"
+                  style="display:none;text-align:center;padding:32px;color:var(--txt3);font-size:13px">No requests
+                  found.</div>
+              </div>
+            </div>
+          </div>
+          <div id="hr-tab-staff" style="display:none">
+            <div class="card fi">
+              <div class="card-head">
+                <div class="s-num"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white"
+                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg></div>
+                <div class="card-head-title" id="hr-sh">Staff Registry</div>
+              </div>
+              <div class="card-body" style="padding:0">
+                <div class="twrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th id="hr-sth1">ID</th>
+                        <th id="hr-sth2">Name</th>
+                        <th id="hr-sth3">Position</th>
+                        <th id="hr-sth4">Total</th>
+                        <th id="hr-sth5">Used</th>
+                        <th id="hr-sth6">Remaining</th>
+                      </tr>
+                    </thead>
+                    <tbody id="hr-stbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="hr-tab-analytics" style="display:none">
+
+            <div class="card fi2" style="margin-bottom:14px;padding:14px 16px">
+              <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span style="font-size:12px;color:var(--txt3);white-space:nowrap">Period</span>
+                  <select id="an-period" onchange="anChangePeriod(this.value)"
+                    style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--txt);cursor:pointer">
+                    <option value="all">All Time</option>
+                    <option value="year" selected>Current Year</option>
+                    <option value="month">Specific Month</option>
+                  </select>
+                </div>
+                <div id="an-year-row" style="display:flex;align-items:center;gap:6px">
+                  <span style="font-size:12px;color:var(--txt3)">Year</span>
+                  <select id="an-year" onchange="anChangeYear(this.value)"
+                    style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--txt);cursor:pointer"></select>
+                </div>
+                <div id="an-month-row" style="display:none;align-items:center;gap:6px">
+                  <span style="font-size:12px;color:var(--txt3)">Month</span>
+                  <select id="an-month" onchange="anChangeMonth(this.value)"
+                    style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--txt);cursor:pointer">
+                    <option value="">All Months</option>
+                    <option value="1">Jan</option>
+                    <option value="2">Feb</option>
+                    <option value="3">Mar</option>
+                    <option value="4">Apr</option>
+                    <option value="5">May</option>
+                    <option value="6">Jun</option>
+                    <option value="7">Jul</option>
+                    <option value="8">Aug</option>
+                    <option value="9">Sep</option>
+                    <option value="10">Oct</option>
+                    <option value="11">Nov</option>
+                    <option value="12">Dec</option>
+                  </select>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span style="font-size:12px;color:var(--txt3)">Staff</span>
+                  <select id="an-staff" onchange="anChangeStaff(this.value)"
+                    style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--txt);cursor:pointer;max-width:160px">
+                    <option value="">All Staff</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="sumrow fi" id="an-statrow"></div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+              <div class="card fi2">
+                <div class="card-head">
+                  <div class="card-head-title">Leave by Type</div>
+                </div>
+                <div class="card-body">
+                  <div id="an-bytype"></div>
+                </div>
+              </div>
+              <div class="card fi2">
+                <div class="card-head">
+                  <div class="card-head-title">Leave by Month</div>
+                </div>
+                <div class="card-body">
+                  <div id="an-bymonth"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card fi2" style="margin-bottom:14px">
+              <div class="card-head">
+                <div class="card-head-title">Leave Days per Staff</div><button id="an-sort-btn"
+                  onclick="toggleAnStaffSort()"
+                  style="font-size:11px;padding:4px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--txt2);cursor:pointer;white-space:nowrap">Sort:
+                  Most Leave ↓</button>
+              </div>
+              <div class="card-body" style="padding:0">
+                <div class="twrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Staff</th>
+                        <th>Position</th>
+                        <th style="text-align:center">Annual</th>
+                        <th style="text-align:center;cursor:pointer" onclick="toggleAnStaffSort()"
+                          title="Click to toggle sort">Used ↕</th>
+                        <th style="text-align:center">Remaining</th>
+                        <th style="text-align:center">Requests</th>
+                      </tr>
+                    </thead>
+                    <tbody id="an-staffbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="card fi2">
+              <div class="card-head">
+                <div class="card-head-title" id="hr-nt-st-t">Late / Early Notices</div>
+              </div>
+              <div class="card-body" style="padding:0">
+                <div class="twrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Staff</th>
+                        <th style="text-align:center">Late</th>
+                        <th style="text-align:center">Leave Early</th>
+                        <th style="text-align:center">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody id="an-noticebody"></tbody>
+                  </table>
+                </div>
+                <div id="an-noticeempty"
+                  style="display:none;text-align:center;padding:24px;color:var(--txt3);font-size:13px">No notices
+                  recorded yet.</div>
+              </div>
+            </div>
+
+            <div class="card fi2" style="margin-top:14px">
+              <div class="card-head">
+                <div class="card-head-title">Notice Records</div>
+              </div>
+              <div class="card-body" style="padding:0">
+                <div class="twrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Staff</th>
+                        <th>Type</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Reason</th>
+                        <th style="text-align:center">Delete</th>
+                      </tr>
+                    </thead>
+                    <tbody id="an-notice-records-body"></tbody>
+                  </table>
+                </div>
+                <div id="an-notice-records-empty"
+                  style="display:none;text-align:center;padding:24px;color:var(--txt3);font-size:13px">No notice
+                  records.</div>
+              </div>
+            </div>
+
+          </div>
+
+          <div id="hr-tab-attendance" style="display:none">
+
+            <div class="card" style="margin-bottom:14px">
+              <div class="card-head">
+                <div class="s-num"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white"
+                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg></div>
+                <div class="card-head-title">Attendance Import</div>
+              </div>
+              <div class="card-body">
+                <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end">
+                  <div style="flex:1;min-width:180px">
+                    <div style="font-size:12px;color:var(--txt3);margin-bottom:8px;font-weight:500">Step 1 — Download
+                      blank template</div>
+                    <button class="btn" onclick="attnDownloadTemplate()"
+                      style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;font-size:13px">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                      </svg>
+                      Download Template
+                    </button>
+                  </div>
+                  <div style="flex:1;min-width:180px">
+                    <div style="font-size:12px;color:var(--txt3);margin-bottom:8px;font-weight:500">Step 2 — Fill in
+                      data, then upload</div>
+                    <label class="btn btn-p"
+                      style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;font-size:13px;cursor:pointer">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                      </svg>
+                      Upload File
+                      <input type="file" accept=".xlsx,.xls" onchange="attnHandleUpload(this)" style="display:none">
+                    </label>
+                  </div>
+                </div>
+                <div class="info-box" style="margin-top:14px;margin-bottom:0">
+                  <strong>Date format: DD-MM-YYYY</strong> (e.g. 22-03-2026) &nbsp;·&nbsp; Time: HH:MM 24-hr (e.g.
+                  08:30)<br>
+                  Work hours: <strong>08:30</strong>–12:00 / 13:00–<strong>17:30</strong> &nbsp;·&nbsp;
+                  Early = before 08:20 &nbsp;·&nbsp; On Time = 08:20–08:30 &nbsp;·&nbsp; Late = after 08:30
+                  &nbsp;·&nbsp; Leave Early = before 17:30
+                </div>
+              </div>
+            </div>
+
+            <div id="attn-preview-section" style="display:none">
+              <div class="card" style="margin-bottom:14px">
+                <div class="card-head">
+                  <div class="card-head-title">Preview — Review before importing</div>
+                  <button id="attn-import-btn" onclick="attnImport()" class="btn btn-p"
+                    style="font-size:12px;padding:6px 14px;display:inline-flex;align-items:center;gap:6px">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Import to Google Sheets
+                  </button>
+                </div>
+                <div class="card-body" style="padding:0">
+                  <div class="twrap">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Staff</th>
+                          <th>Check In</th>
+                          <th>Arrival</th>
+                          <th>Check Out</th>
+                          <th>Departure</th>
+                          <th>Note</th>
+                        </tr>
+                      </thead>
+                      <tbody id="attn-tbody"></tbody>
+                    </table>
+                    <div id="attn-nodata"
+                      style="display:none;text-align:center;padding:32px;color:var(--txt3);font-size:13px">No records
+                      loaded.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="hr-tab-export" style="display:none">
+            <div class="card fi" style="margin-bottom:14px">
+              <div class="card-head">
+                <div class="s-num"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white"
+                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg></div>
+                <div class="card-head-title">Export Report</div>
+              </div>
+              <div class="card-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end">
+                  <div class="field">
+                    <label>Year</label>
+                    <select id="exp-year" onchange="expPreview()">
+                      <option value="">All Years</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label>Month</label>
+                    <select id="exp-month" onchange="expPreview()">
+                      <option value="">All Months</option>
+                      <option value="1">January</option>
+                      <option value="2">February</option>
+                      <option value="3">March</option>
+                      <option value="4">April</option>
+                      <option value="5">May</option>
+                      <option value="6">June</option>
+                      <option value="7">July</option>
+                      <option value="8">August</option>
+                      <option value="9">September</option>
+                      <option value="10">October</option>
+                      <option value="11">November</option>
+                      <option value="12">December</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label>Staff</label>
+                    <select id="exp-staff" onchange="expPreview()">
+                      <option value="">All Staff</option>
+                    </select>
+                  </div>
+                  <button class="btn btn-p" onclick="expDownload()" style="white-space:nowrap;padding:10px 18px">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    Download CSV
+                  </button>
+                </div>
+                <div id="exp-summary" style="margin-top:12px;font-size:12px;color:var(--txt3)"></div>
+              </div>
+            </div>
+            <div class="card fi2" style="margin-bottom:14px">
+              <div class="card-body" style="padding:0">
+                <div class="twrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Req ID</th>
+                        <th>Staff</th>
+                        <th>Position</th>
+                        <th>Type</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Days</th>
+                        <th>Reason</th>
+                        <th>Status</th>
+                        <th>Submitted</th>
+                      </tr>
+                    </thead>
+                    <tbody id="exp-tbody"></tbody>
+                  </table>
+                  <div id="exp-nodata"
+                    style="text-align:center;padding:32px;color:var(--txt3);font-size:13px;display:none">No records
+                    match the selected filters.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="hr-tab-holidays" style="display:none">
+
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-head">
+                <div class="s-num" style="background:var(--ok)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </div>
+                <div class="card-head-title">Add Official Holiday</div>
+                <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+                  <span id="hol-sync-status" class="badge" style="background:rgba(22,163,74,.1);color:var(--ok);font-size:11px;padding:3px 8px;border:1px solid rgba(22,163,74,.2)">Synced with Sheets</span>
+                </div>
+              </div>
+              <div class="card-body">
+                <p style="font-size:12px;color:var(--txt2);margin:0 0 14px">
+                  Holidays added here automatically blackout on the calendar and are skipped during leave duration calculations. All dates sync with Google Sheets.
+                </p>
+
+                <form id="hol-add-form" onsubmit="event.preventDefault();hrAddHoliday();" style="display:grid;grid-template-columns:1fr 1.2fr 1fr 1fr auto;gap:10px;align-items:flex-end">
+                  <div class="field" style="margin:0">
+                    <label style="font-size:11px;font-weight:600;color:var(--txt2)">Date</label>
+                    <input type="date" id="hol-in-date" required style="font-size:13px;padding:8px 10px;border-radius:8px">
+                  </div>
+                  <div class="field" style="margin:0">
+                    <label style="font-size:11px;font-weight:600;color:var(--txt2)">Holiday Name (English)</label>
+                    <input type="text" id="hol-in-name" placeholder="e.g. Khmer New Year" required style="font-size:13px;padding:8px 10px;border-radius:8px">
+                  </div>
+                  <div class="field" style="margin:0">
+                    <label style="font-size:11px;font-weight:600;color:var(--txt2)">Name (Khmer - Optional)</label>
+                    <input type="text" id="hol-in-namekh" placeholder="e.g. ចូលឆ្នាំខ្មែរ" style="font-size:13px;padding:8px 10px;border-radius:8px">
+                  </div>
+                  <div class="field" style="margin:0">
+                    <label style="font-size:11px;font-weight:600;color:var(--txt2)">Type</label>
+                    <select id="hol-in-type" style="font-size:13px;padding:8px 10px;border-radius:8px">
+                      <option value="Public Holiday">Public Holiday</option>
+                      <option value="Company Holiday">Company Holiday</option>
+                      <option value="Substitute Holiday">Substitute Holiday</option>
+                      <option value="Special Holiday">Special Holiday</option>
+                    </select>
+                  </div>
+                  <button type="submit" id="hol-add-btn" class="btn btn-p" style="padding:9px 18px;font-size:13px;font-weight:600;white-space:nowrap;height:38px;display:inline-flex;align-items:center;gap:6px">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span>Save Holiday</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head" style="justify-content:space-between;flex-wrap:wrap;gap:10px">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <div class="card-head-title">Official Holidays List</div>
+                  <span id="hol-count-badge" class="badge b-approved" style="font-size:11px">0 Holidays</span>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                  <select id="hol-filter-year" onchange="hrRenderHolidays()" style="font-size:12px;padding:6px 10px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--txt);font-weight:600">
+                    <option value="">All Years</option>
+                  </select>
+                  <button type="button" class="btn btn-g" onclick="hrOpenHolidayExportModal()" style="font-size:12px;padding:6px 11px;display:inline-flex;align-items:center;gap:5px" title="Export Holiday Template">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>Export Template</span>
+                  </button>
+                  <button type="button" class="btn btn-p" onclick="hrOpenHolidayImportModal()" style="font-size:12px;padding:6px 11px;display:inline-flex;align-items:center;gap:5px" title="Upload and translate holiday sheet/template">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    <span>Upload / Import</span>
+                  </button>
+                  <button type="button" class="btn btn-g" onclick="hrResetDefaultHolidays()" style="font-size:12px;padding:6px 10px" title="Reload official Cambodian public holidays for selected year">
+                    Load Year Defaults
+                  </button>
+                  <button type="button" class="btn btn-g" onclick="hrSyncHolidaysFromSheet()" style="font-size:12px;padding:6px 10px" title="Refresh from Google Sheet">
+                    Sync from Sheet
+                  </button>
+                </div>
+              </div>
+              <div class="tbl-wrap">
+                <table class="tbl" id="hol-tbl">
+                  <thead>
+                    <tr>
+                      <th style="width:110px">Date</th>
+                      <th style="width:100px">Day</th>
+                      <th>Holiday Name (English)</th>
+                      <th>Holiday Name (Khmer)</th>
+                      <th style="width:130px">Category</th>
+                      <th style="width:90px;text-align:center">Status</th>
+                      <th style="width:70px;text-align:center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hol-tbody">
+
+                  </tbody>
+                </table>
+                <div id="hol-nodata" style="display:none;padding:32px;text-align:center;color:var(--txt3);font-size:13px">
+                  No holidays configured for the selected year. Add one above or import from template!
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="hr-hol-export-modal"
+    style="display:none;position:fixed;inset:0;z-index:660;background:rgba(0,0,0,.65);align-items:center;justify-content:center;padding:20px">
+    <div
+      style="background:var(--surface);border-radius:18px;max-width:480px;width:100%;padding:26px 24px 22px;box-shadow:0 24px 64px rgba(0,0,0,.4);animation:riseIn .22s ease">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div
+            style="width:38px;height:38px;border-radius:10px;background:rgba(59,130,246,.12);display:flex;align-items:center;justify-content:center;color:#2563eb;flex-shrink:0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:16px;color:var(--txt)">Export Holiday Template</div>
+            <div style="font-size:12px;color:var(--txt3)">Download CSV template to manually fill and upload back</div>
+          </div>
+        </div>
+        <button type="button" onclick="hrCloseHolidayExportModal()" style="background:none;border:none;color:var(--txt3);cursor:pointer;padding:6px;border-radius:6px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:20px">
+        <div class="field" style="margin:0">
+          <label style="font-size:11.5px;font-weight:600;color:var(--txt2);margin-bottom:5px;display:block">Target Year</label>
+          <select id="hol-exp-year-select" style="width:100%;font-size:13.5px;padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--txt);font-weight:600">
+
+          </select>
+        </div>
+
+        <div class="field" style="margin:0">
+          <label style="font-size:11.5px;font-weight:600;color:var(--txt2);margin-bottom:6px;display:block">Template Content Option</label>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:var(--surface2)">
+              <input type="radio" name="hol-exp-type" value="standard" checked style="margin-top:2px">
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--txt)">Pre-filled Cambodian Public Holidays</div>
+                <div style="font-size:11.5px;color:var(--txt3)">Standard official Cambodian holidays auto-generated for the selected year.</div>
+              </div>
+            </label>
+            <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:var(--surface2)">
+              <input type="radio" name="hol-exp-type" value="current" style="margin-top:2px">
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--txt)">Current Saved Holidays for Selected Year</div>
+                <div style="font-size:11.5px;color:var(--txt3)">Export what is currently stored in Google Sheets for that year.</div>
+              </div>
+            </label>
+            <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:var(--surface2)">
+              <input type="radio" name="hol-exp-type" value="blank" style="margin-top:2px">
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--txt)">Blank Clean Template</div>
+                <div style="font-size:11.5px;color:var(--txt3)">Headers with sample format rows only.</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div style="padding:10px 12px;border-radius:8px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.15);display:flex;gap:8px;align-items:center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          <span style="font-size:11.5px;color:var(--txt2);line-height:1.4">Exported CSV includes UTF-8 encoding support for Khmer and English characters in Microsoft Excel and Google Sheets.</span>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button type="button" onclick="hrCloseHolidayExportModal()" class="btn btn-g" style="padding:9px 16px;font-size:13px">Cancel</button>
+        <button type="button" onclick="hrDownloadHolidayTemplate()" class="btn btn-p" style="padding:9px 18px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <span>Download CSV Template</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="hr-hol-import-modal"
+    style="display:none;position:fixed;inset:0;z-index:660;background:rgba(0,0,0,.65);align-items:center;justify-content:center;padding:20px">
+    <div
+      style="background:var(--surface);border-radius:18px;max-width:680px;width:100%;max-height:90vh;display:flex;flex-direction:column;padding:26px 24px 22px;box-shadow:0 24px 64px rgba(0,0,0,.4);animation:riseIn .22s ease;overflow:hidden">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-shrink:0">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div
+            style="width:38px;height:38px;border-radius:10px;background:rgba(22,163,74,.12);display:flex;align-items:center;justify-content:center;color:var(--ok);flex-shrink:0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:16px;color:var(--txt)">Import & Translate Holiday Sheet</div>
+            <div style="font-size:12px;color:var(--txt3)">Upload filled CSV/Excel or paste data directly to sync into Google Sheets</div>
+          </div>
+        </div>
+        <button type="button" onclick="hrCloseHolidayImportModal()" style="background:none;border:none;color:var(--txt3);cursor:pointer;padding:6px;border-radius:6px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding-right:4px;display:flex;flex-direction:column;gap:14px">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
+          <div style="border:2px dashed var(--border);border-radius:12px;padding:16px 14px;text-align:center;background:var(--surface2);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--txt2);margin-bottom:6px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+            <div style="font-size:12.5px;font-weight:600;color:var(--txt);margin-bottom:2px">Upload CSV / Sheet File</div>
+            <div style="font-size:11px;color:var(--txt3);margin-bottom:8px">Click to browse or drop file here</div>
+            <input type="file" id="hol-imp-file" accept=".csv,.tsv,.txt" onchange="hrHandleHolidayFileUpload(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">
+            <button type="button" class="btn btn-sm btn-g" style="pointer-events:none;font-size:11px;padding:3px 8px">Select File</button>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label style="font-size:11.5px;font-weight:600;color:var(--txt2)">Or Paste Table / Text from Excel</label>
+            <textarea id="hol-imp-paste" placeholder="Paste rows from Excel (Date, Name, Name Khmer, Type)..." style="flex:1;min-height:75px;font-size:11.5px;font-family:monospace;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--txt);resize:none"></textarea>
+            <button type="button" onclick="hrHandleHolidayPasteProcess()" class="btn btn-sm btn-g" style="font-size:11px;padding:4px 8px;align-self:flex-end">
+              Translate & Parse Text
+            </button>
+          </div>
+        </div>
+
+        <div id="hol-imp-preview-card" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+            <div id="hol-imp-summary"></div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <label style="font-size:11.5px;font-weight:600;color:var(--txt2);white-space:nowrap">Save Strategy:</label>
+              <select id="hol-imp-strat-select" style="font-size:11.5px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--txt)">
+                <option value="replace_year">Replace all holidays for target year (Recommended)</option>
+                <option value="merge">Merge into Sheet</option>
+                <option value="replace_all">Replace entire Sheet</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;background:var(--surface)">
+            <table class="tbl" style="margin:0;font-size:12px">
+              <thead>
+                <tr>
+                  <th style="width:105px">Date</th>
+                  <th style="width:90px">Day</th>
+                  <th>English Name</th>
+                  <th>Khmer Name</th>
+                  <th style="width:115px">Category</th>
+                  <th style="width:40px;text-align:center">Del</th>
+                </tr>
+              </thead>
+              <tbody id="hol-imp-tbody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-shrink:0;border-top:1px solid var(--border);padding-top:14px">
+        <button type="button" onclick="hrCloseHolidayImportModal()" class="btn btn-g" style="padding:8px 16px;font-size:13px">Cancel</button>
+        <button type="button" id="hol-imp-save-btn" onclick="hrSubmitHolidayImport()" disabled class="btn btn-p" style="padding:8px 18px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          <span>Upload & Save to Sheet</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="hr-del-modal"
+    style="display:none;position:fixed;inset:0;z-index:650;background:rgba(0,0,0,.65);align-items:center;justify-content:center;padding:20px">
+    <div
+      style="background:var(--surface);border-radius:18px;max-width:360px;width:100%;padding:28px 24px 24px;box-shadow:0 24px 64px rgba(0,0,0,.4);animation:riseIn .22s ease">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div
+          style="width:36px;height:36px;border-radius:50%;background:rgba(192,39,45,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+            <path d="M10 11v6" />
+            <path d="M14 11v6" />
+            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+          </svg>
+        </div>
+        <div>
+          <div style="font-weight:600;font-size:15px;color:var(--txt)">Delete Request</div>
+          <div style="font-size:12px;color:var(--txt3)" id="del-req-label">This cannot be undone.</div>
+        </div>
+      </div>
+      <div style="font-size:13px;color:var(--txt2);margin:12px 0 20px;line-height:1.6">Slide to confirm deletion. This
+        will permanently remove the request and reverse any leave days counted.</div>
+
+      <div class="del-slider-track" id="del-slider-track">
+        <div class="del-slider-fill" id="del-slider-fill"></div>
+        <div class="del-slider-thumb" id="del-slider-thumb" onmousedown="delSliderStart(event)"
+          ontouchstart="delSliderStart(event)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        </div>
+        <span class="del-slider-hint" id="del-slider-hint">Slide to delete →</span>
+      </div>
+      <button onclick="closeDelModal()"
+        style="margin-top:14px;width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:none;color:var(--txt2);font-size:13px;cursor:pointer;transition:background .15s">Cancel</button>
+    </div>
+  </div>
+
+  <div id="hr-status-modal"
+    style="display:none;position:fixed;inset:0;z-index:650;background:rgba(0,0,0,.65);align-items:center;justify-content:center;padding:20px">
+    <div
+      style="background:var(--surface);border-radius:18px;max-width:360px;width:100%;padding:28px 24px 24px;box-shadow:0 24px 64px rgba(0,0,0,.4);animation:riseIn .22s ease">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+        <div id="hr-sm-icon"
+          style="width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;background:rgba(0,0,0,.06)">
+        </div>
+        <div>
+          <div style="font-weight:700;font-size:15px;color:var(--txt)" id="hr-sm-title">Confirm</div>
+          <div style="font-size:12px;color:var(--txt3);margin-top:2px" id="hr-sm-sub">—</div>
+        </div>
+      </div>
+
+      <label id="hr-sm-silent-label" for="hr-silent-chk"
+        style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;border:2px solid var(--border);cursor:pointer;transition:border-color .18s,background .18s;background:var(--bg2)">
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600;color:var(--txt)">Silent</div>
+          <div style="font-size:11px;color:var(--txt3);margin-top:2px">No Telegram notification will be sent</div>
+        </div>
+        <div id="hr-sm-toggle"
+          style="width:42px;height:24px;border-radius:12px;background:var(--border);position:relative;transition:background .18s;flex-shrink:0">
+          <div id="hr-sm-knob"
+            style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:left .18s;box-shadow:0 1px 4px rgba(0,0,0,.25)">
+          </div>
+        </div>
+        <input type="checkbox" id="hr-silent-chk" style="display:none" onchange="hrSilentToggleUI()">
+      </label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px">
+        <button onclick="closeStatusModal()"
+          style="padding:11px;border:1px solid var(--border);border-radius:var(--radius-sm);background:none;color:var(--txt2);font-size:13px;font-weight:500;cursor:pointer;transition:background .15s">Cancel</button>
+        <button id="hr-sm-confirm-btn" onclick="confirmHrStatus()"
+          style="padding:11px;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;color:#fff"></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="reauth-modal"
+    style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:20px">
+    <div
+      style="background:var(--surface);border-radius:16px;max-width:380px;width:100%;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.35);animation:riseIn .25s ease">
+      <div style="font-family:var(--font-disp);font-size:18px;font-weight:500;color:var(--txt);margin-bottom:6px">
+        Confirm Action</div>
+      <div style="font-size:13px;color:var(--txt2);margin-bottom:18px" id="reauth-msg">Re-enter your password to
+        continue.</div>
+      <div class="field" style="margin-bottom:14px">
+        <label>Password</label>
+        <input type="password" id="reauth-pass" placeholder="Your HR password"
+          onkeydown="if(event.key==='Enter')submitReauth()">
+      </div>
+      <div style="color:var(--red);font-size:12px;min-height:18px;margin-bottom:12px" id="reauth-err"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button class="btn btn-g" onclick="cancelReauth()">Cancel</button>
+        <button class="btn btn-p" onclick="submitReauth()" id="reauth-btn">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="confirm-modal">
+    <div class="modal-box">
+      <div class="modal-header" style="flex-direction:column;align-items:flex-start;gap:4px;padding:28px 32px 22px">
+        <div class="modal-sub" style="font-size:20px;font-weight:700;color:#fff;margin-top:0">Please read before
+          printing</div>
+      </div>
+      <div class="modal-body">
+        <div class="modal-msg">
+          <span id="pn-bd">Your request has been sent to the HR team.<br><br><strong id="pn-hd">Please print the form,
+              sign it yourself, and bring it to management for approval.</strong><br><br>HR will notify you when your
+            request is approved.</span>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-g" onclick="cancelConfirmModal()">Cancel</button>
+          <button class="btn btn-p" onclick="doConfirm()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+              <polyline points="6 9 6 2 18 2 18 9" />
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+              <rect x="6" y="14" width="12" height="8" />
+            </svg>
+            Confirm &amp; Print
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="cal-modal" class="modal-overlay" style="display:none;position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.68);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:16px;box-sizing:border-box;overflow-y:auto" onclick="closeCalModal()">
+    <div class="modal-box cal-modal-box" onclick="event.stopPropagation()">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--ok)">
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          <span id="cal-modal-title" style="font-weight:700;font-size:15px;color:var(--txt)">Select Date</span>
+        </div>
+        <button type="button" class="modal-close" onclick="closeCalModal()" aria-label="Close" style="background:none;border:none;color:var(--txt2);cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;border-radius:8px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div id="built-in-calendar"></div>
+
+      <div class="modal-actions" style="margin-top:14px;display:grid;grid-template-columns:1fr 1.3fr;gap:10px">
+        <button type="button" class="btn btn-g" onclick="closeCalModal()">Cancel</button>
+        <button type="button" class="btn btn-p" onclick="confirmCalModal()">Apply Date</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="nt-numpad-overlay" style="display:none;position:fixed;inset:0;z-index:9999" onclick="ntNumpadClose()">
+    <div style="position:absolute;inset:0;background:rgba(0,0,0,.45)"></div>
+    <div
+      style="position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:24px 24px 0 0;padding:22px 24px max(32px,env(safe-area-inset-bottom));max-width:480px;margin:0 auto;box-sizing:border-box"
+      onclick="event.stopPropagation()">
+      <div style="width:36px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto 18px"></div>
+      <div
+        style="text-align:center;font-size:11px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px"
+        id="nt-numpad-label">Hour</div>
+      <div
+        style="text-align:center;font-size:56px;font-weight:800;color:var(--txt);margin-bottom:20px;letter-spacing:8px;font-variant-numeric:tabular-nums;min-height:66px;line-height:1"
+        id="nt-numpad-display">--</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px">
+        <button class="nt-np-btn" onclick="ntNumpadKey('1')">1</button>
+        <button class="nt-np-btn" onclick="ntNumpadKey('2')">2</button>
+        <button class="nt-np-btn" onclick="ntNumpadKey('3')">3</button>
+        <button class="nt-np-btn" onclick="ntNumpadKey('4')">4</button>
+        <button class="nt-np-btn" onclick="ntNumpadKey('5')">5</button>
+        <button class="nt-np-btn" onclick="ntNumpadKey('6')">6</button>
+        <button class="nt-np-btn" onclick="ntNumpadKey('7')">7</button>
+        <button class="nt-np-btn" onclick="ntNumpadKey('8')">8</button>
+        <button class="nt-np-btn" onclick="ntNumpadKey('9')">9</button>
+        <button class="nt-np-btn nt-np-fn" onclick="ntNumpadClear()">C</button>
+        <button class="nt-np-btn" onclick="ntNumpadKey('0')">0</button>
+        <button class="nt-np-btn nt-np-fn" onclick="ntNumpadBackspace()">⌫</button>
+      </div>
+      <button onclick="ntNumpadConfirm()"
+        style="width:100%;padding:15px;font-size:16px;font-weight:700;background:#00AEEF;color:#fff;border:none;border-radius:14px;cursor:pointer;-webkit-tap-highlight-color:transparent">Done</button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="portal.js" defer></script>
+</body>
+
+</html>
