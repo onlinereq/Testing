@@ -8,11 +8,6 @@ if (window.Telegram && window.Telegram.WebApp) {
   window.Telegram.WebApp.expand();
 }
 
-if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', () => {
-    document.body.style.height = window.visualViewport.height + 'px';
-  });
-}
 
 // ── GLOBAL ERROR TRACKING ────────────────────────
 window.addEventListener('error', function (e) {
