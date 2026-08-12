@@ -1,6 +1,6 @@
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYjeoCtNv3G9UScOl0AW2H3KZazvFF02Yxd8BX7qw6QJt16g_SRYZJYM1aZU-qvqOt/exec';
 
-// ── MOBILE APP INITIALIZATION ─────────────────────
+// --- MOBILE APP INITIALIZATION ---
 document.addEventListener("touchstart", function() {}, {passive: true}); // Enable iOS :active pseudo-class on buttons
 
 if (window.Telegram && window.Telegram.WebApp) {
