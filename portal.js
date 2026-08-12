@@ -1,5 +1,18 @@
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYjeoCtNv3G9UScOl0AW2H3KZazvFF02Yxd8BX7qw6QJt16g_SRYZJYM1aZU-qvqOt/exec';
 
+// ── MOBILE APP INITIALIZATION ─────────────────────
+document.addEventListener("touchstart", function() {}, {passive: true}); // Enable iOS :active pseudo-class on buttons
+
+if (window.Telegram && window.Telegram.WebApp) {
+  window.Telegram.WebApp.expand();
+}
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    document.body.style.height = window.visualViewport.height + 'px';
+  });
+}
+
 // ── GLOBAL ERROR TRACKING ────────────────────────
 window.addEventListener('error', function (e) {
   let context = '';
@@ -571,11 +584,7 @@ async function onStaffInput(inputId, fbId, listId) {
 function updateStaffGateActions(inputId) {
   const inputEl = document.getElementById(inputId);
   if (inputEl) {
-    if (inputEl.dataset.selectedStaff) {
-      inputEl.readOnly = true;
-    } else {
-      inputEl.readOnly = false;
-    }
+    inputEl.readOnly = false;
   }
 }
 
