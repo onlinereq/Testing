@@ -4,6 +4,7 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYjeoCtNv3G9UScOl0A
 document.addEventListener("touchstart", function() {}, {passive: true}); // Enable iOS :active pseudo-class on buttons
 
 if (window.Telegram && window.Telegram.WebApp) {
+  window.Telegram.WebApp.ready();
   window.Telegram.WebApp.expand();
 }
 
