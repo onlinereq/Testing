@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>Whiteboard Scanner</title>
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23E00028" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>'>
+  <link rel="apple-touch-icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23E00028" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>'>
+  <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Hanuman:wght@400;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <!-- html5-qrcode -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    :root {
+      --red:    #E00028;
+      --dark:   #2C2A26;
+      --mid:    #8A877E;
+      --muted:  #B0AD9E;
+      --border: #E6E2D3;
+      --bg:     #F9F8F3;
+      --white:  #FFFFFF;
+      --input-bg: #F3F1EA;
+      --primary: #E00028;
+      --primary-dark: #B30020;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', 'Battambang', 'Khmer OS Battambang', sans-serif;
+      background: var(--bg); color: var(--dark);
+      display: flex; flex-direction: column; height: 100vh;
+      overflow-x: hidden;
+      overscroll-behavior-y: none; /* Prevent pull-to-refresh */
+      -webkit-user-select: none; /* Safari */
+      user-select: none; /* Prevent text selection */
+      -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+    }
+    
+    /* Top Bar */
+    header {
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--bg);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .top-brand strong { display: block; font-size: .95rem; font-weight: 700; color: var(--dark); line-height: 1.2; }
+    .top-brand span { font-size: .8rem; color: var(--muted); }
+    
+    .nav-actions { display: flex; gap: 0.5rem; align-items: center; }
+    
+    .btn-secondary {
+      background: var(--white);
+      border: 1px solid var(--border);
+      color: var(--mid);
+      padding: .45rem 1.1rem;
+      border-radius: 99px;
+      font-size: .85rem; font-weight: 600;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border: none;
+      color: #fff;
+      padding: .45rem 1.1rem;
+      border-radius: 99px;
+      font-size: .85rem; font-weight: 600;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 0.5rem;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(224, 0, 40, 0.25);
+    }
+    .btn-primary:hover { background: linear-gradient(135deg, var(--primary-dark), #8A0019); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(224, 0, 40, 0.35); }
+    
+    /* Main Content */
+    main {
+      flex: 1; padding: 1.5rem;
+      max-width: 1140px; margin: 0 auto; width: 100%;
+    }
+    .section-title {
+      font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--dark);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    
+    /* Grid & Cards */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    
+    .card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.2rem;
+      display: flex; flex-direction: column; gap: 0.8rem;
+      transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+      position: relative;
+      cursor: pointer;
+    }
+    .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); transform: translateY(-2px); border-color: var(--mid); }
+    .card.delivered { opacity: 0.6; }
+    .card.voided { opacity: 0.5; border-color: var(--red); }
+    
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .card-title { font-weight: 700; font-size: 1rem; color: var(--dark); }
+    .card-status { 
+      font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);
+    }
+    .status-pending { color: var(--primary); border-color: rgba(37, 99, 235, 0.3); background: rgba(37, 99, 235, 0.05); }
+    .status-delivered { color: #10B981; border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.05); }
+    .status-voided { color: var(--red); border-color: rgba(224, 0, 40, 0.3); background: rgba(224, 0, 40, 0.05); }
+    
+    .card-row { display: flex; justify-content: space-between; font-size: 0.85rem; border-bottom: 1px solid var(--input-bg); padding-bottom: 0.3rem; }
+    .card-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .card-label { color: var(--muted); }
+    .card-val { color: var(--dark); font-weight: 500; text-align: right; max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
+
+    
+    /* Scanner Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(44, 42, 38, 0.6); backdrop-filter: blur(4px);
+      z-index: 100; display: flex; justify-content: center; align-items: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s; padding: 1rem;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .modal-content {
+      background: var(--white); border-radius: 16px; width: 90%; max-width: 800px; max-height: 90vh;
+      display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .modal-header {
+      padding: 1rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center; background: var(--bg);
+    }
+    .modal-title { font-weight: 700; font-size: 1.1rem; }
+    .close-btn { background: none; border: none; font-size: 1.5rem; color: var(--muted); cursor: pointer; }
+    .close-btn:hover { color: var(--dark); }
+    /* Detail Modal */
+    .detail-body { padding: 2rem; display: flex; flex-direction: column; gap: 1.2rem; font-size: 1rem; overflow-y: auto; }
+    .detail-row { display: flex; justify-content: space-between; border-bottom: 1px solid var(--input-bg); padding-bottom: 0.8rem; }
+    .detail-label { color: var(--muted); font-weight: 600; }
+    .detail-val { font-weight: 500; text-align: right; color: var(--dark); max-width: 70%; word-wrap: break-word; }
+    .detail-actions { padding: 1.2rem 2rem; border-top: 1px solid var(--border); background: var(--bg); display: flex; justify-content: flex-end; }
+    .btn-deliver {
+      background: #10B981; color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 99px;
+      font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    }
+    .btn-deliver:hover { background: #059669; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35); }
+    
+    /* Loader & Empty State */
+    .loader { border: 3px solid var(--border); border-left-color: var(--primary); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin: 2rem auto; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty { text-align: center; color: var(--muted); margin-top: 3rem; font-size: 0.95rem; }
+    
+    /* Toast */
+    .toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--dark); color: var(--white); padding: 0.8rem 1.5rem; border-radius: 99px; font-weight: 600; font-size: 0.9rem; transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 200; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+    .toast.show { bottom: 2rem; }
+    
+    /* History Specific */
+    #historyContainer { display: none; }
+    .tabs { display: flex; gap: 1rem; align-items: center; }
+    .tab { padding: 0.5rem 0; cursor: pointer; font-weight: 600; color: var(--muted); border-bottom: 2px solid transparent; transition: all 0.2s; }
+    .tab.active { color: var(--dark); border-bottom-color: var(--dark); }
+    .tab:hover:not(.active) { color: var(--mid); }
+    
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="top-brand">
+    <strong>Whiteboard</strong>
+    <span>Proof of Delivery Companion</span>
+  </div>
+  
+  <div class="tabs">
+    <div class="tab active" id="tabPending" onclick="switchTab('pending')">Pending (<span id="pendingCount">0</span>)</div>
+    <div class="tab" id="tabHistory" onclick="switchTab('history')">History (<span id="historyCount">0</span>)</div>
+  </div>
+
+  <div class="nav-actions">
+    <button class="btn-primary" onclick="openScanner()">
+      <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+      Scan QR
+    </button>
+    <button class="btn-secondary" onclick="fetchData()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+      Refresh
+    </button>
+  </div>
+</header>
+
+<main>
+
+  <div id="pendingContainer">
+    <div class="grid" id="pendingGrid"></div>
+  </div>
+  
+  <div id="historyContainer">
+    <div class="grid" id="historyGrid"></div>
+  </div>
+</main>
+
+
+
+<div class="modal-overlay" id="scannerModal" onclick="if(event.target===this) closeScanner()">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">Scan QR Code</div>
+      <button class="close-btn" onclick="closeScanner()">&times;</button>
+    </div>
+    <div id="reader"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="detailModal" onclick="if(event.target===this) closeDetail()">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title" id="detailTitle">Document Details</div>
+      <button class="close-btn" onclick="closeDetail()">&times;</button>
+    </div>
+    <div class="detail-body" id="detailBody">
+      <!-- dynamic content -->
+    </div>
+    <div class="detail-actions" id="detailActions">
+      <button class="btn-deliver" id="btnManualDeliver">✓ Mark Delivered</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="confirmModal" style="z-index: 150;" onclick="if(event.target===this) closeConfirm()">
+  <div class="modal-content" style="max-width: 320px; text-align: center;">
+    <div class="modal-header" style="justify-content: center;">
+      <div class="modal-title">Confirm Delivery</div>
+    </div>
+    <div class="detail-body" style="padding-bottom: 2rem;">
+      <p style="margin-bottom: 1.5rem; color: var(--dark);">Are you sure you want to mark this document as delivered?</p>
+      <div style="display: flex; gap: 1rem; justify-content: center;">
+        <button class="btn-secondary" onclick="closeConfirm()" style="padding: 0.6rem 1.5rem;">Cancel</button>
+        <button class="btn-deliver" id="confirmOkBtn" style="padding: 0.6rem 1.5rem;">Yes, Deliver</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Message</div>
+
+<script>
+  // YOUR APPS SCRIPT WEB APP URL GOES HERE
+  const API_URL = "https://script.google.com/macros/s/AKfycbwq1lBS0jKE7cnnk72tgoJGiF6mk0FwQ0F9QSAIr3RuBPT5j65faYaex7THuJYfjyvrCw/exec";
+  
+  let html5QrcodeScanner = null;
+  let isScanning = false;
+  let allDocs = [];
+  
+  function switchTab(tab) {
+    document.getElementById('tabPending').classList.remove('active');
+    document.getElementById('tabHistory').classList.remove('active');
+    document.getElementById('pendingContainer').style.display = 'none';
+    document.getElementById('historyContainer').style.display = 'none';
+    
+    if(tab === 'pending') {
+      document.getElementById('tabPending').classList.add('active');
+      document.getElementById('pendingContainer').style.display = 'block';
+    } else {
+      document.getElementById('tabHistory').classList.add('active');
+      document.getElementById('historyContainer').style.display = 'block';
+    }
+  }
+  
+  async function fetchData() {
+    document.getElementById('pendingGrid').innerHTML = '<div class="loader"></div>';
+    document.getElementById('historyGrid').innerHTML = '';
+    
+    try {
+      if(API_URL === "YOUR_APPS_SCRIPT_WEB_APP_URL") {
+        document.getElementById('pendingGrid').innerHTML = '<div class="empty">Please configure the API_URL in index.html to connect to your Google Sheet.</div>';
+        return;
+      }
+      
+      const res = await fetch(`${API_URL}?action=getAllDocuments`);
+      const json = await res.json();
+      
+      if(json.success) {
+        allDocs = json.data;
+        renderData();
+      } else {
+        document.getElementById('pendingGrid').innerHTML = `<div class="empty">Error: ${json.error}</div>`;
+      }
+    } catch(e) {
+      document.getElementById('pendingGrid').innerHTML = `<div class="empty">Failed to load data. Network error.</div>`;
+    }
+  }
+  
+  function renderData() {
+    const pending = allDocs.filter(d => d.status === "Pending");
+    const history = allDocs.filter(d => d.status !== "Pending");
+    
+    document.getElementById('pendingCount').innerText = pending.length;
+    document.getElementById('historyCount').innerText = history.length;
+    
+    renderGrid('pendingGrid', pending);
+    renderGrid('historyGrid', history);
+  }
+  
+  function renderGrid(containerId, data) {
+    const container = document.getElementById(containerId);
+    if(data.length === 0) {
+      container.innerHTML = '<div class="empty">No documents found.</div>';
+      return;
+    }
+    
+    container.innerHTML = data.map(item => {
+      let statusCls = 'status-pending';
+      if(item.status === 'Delivered') statusCls = 'status-delivered';
+      if(item.status === 'Voided') statusCls = 'status-voided';
+      
+      return `
+      <div class="card ${item.status.toLowerCase()}" id="card-${item.id}" onclick="openDetail('${item.id}')">
+        <div class="card-header">
+          <div class="card-title">${item.title || 'Untitled'}</div>
+          <div class="card-status ${statusCls}">${item.status.toUpperCase()}</div>
+        </div>
+        <div style="font-size:0.7rem; color:var(--muted); font-family:monospace; margin-top:-0.3rem; margin-bottom:0.5rem">${item.id}</div>
+        
+        <div class="card-row"><span class="card-label">Sender</span><span class="card-val" title="${item.sender}">${item.sender || '-'}</span></div>
+        <div class="card-row"><span class="card-label">Receiver</span><span class="card-val" title="${item.receiver}">${item.receiver || '-'}</span></div>
+        <div class="card-row"><span class="card-label">Location</span><span class="card-val" title="${item.location}">${item.location || '-'}</span></div>
+        <div class="card-row"><span class="card-label">Date</span><span class="card-val">${item.dateSent ? new Date(item.dateSent).toLocaleDateString() : '-'}</span></div>
+      </div>
+      `;
+    }).join('');
+  }
+  
+  function openDetail(id) {
+    const item = allDocs.find(d => d.id === id);
+    if(!item) return;
+    
+    document.getElementById('detailTitle').innerText = item.title || 'Untitled';
+    
+    document.getElementById('detailBody').innerHTML = `
+      <div class="detail-row"><span class="detail-label">Status</span><span class="detail-val">${item.status.toUpperCase()}</span></div>
+      <div class="detail-row"><span class="detail-label">Ref ID</span><span class="detail-val" style="font-family:monospace; font-size:0.8rem;">${item.id}</span></div>
+      <div class="detail-row"><span class="detail-label">Date Sent</span><span class="detail-val">${item.dateSent ? new Date(item.dateSent).toLocaleDateString() : '-'}</span></div>
+      <div class="detail-row"><span class="detail-label">Sender</span><span class="detail-val">${item.sender || '-'}</span></div>
+      <div class="detail-row"><span class="detail-label">Receiver</span><span class="detail-val">${item.receiver || '-'}</span></div>
+      <div class="detail-row"><span class="detail-label">Contact</span><span class="detail-val">${item.contact || '-'}</span></div>
+      <div class="detail-row"><span class="detail-label">Location</span><span class="detail-val">${item.location || '-'}</span></div>
+      ${item.items ? `<div class="detail-row" style="flex-direction:column; gap:0.5rem;"><span class="detail-label">Items</span><span class="detail-val" style="text-align:left; font-size:0.85rem; white-space:pre-wrap; background:var(--input-bg); padding:0.5rem; border-radius:8px;">${item.items}</span></div>` : ''}
+    `;
+    
+    const actionBtn = document.getElementById('btnManualDeliver');
+    if(item.status === 'Pending') {
+      document.getElementById('detailActions').style.display = 'flex';
+      actionBtn.onclick = () => {
+        closeDetail();
+        manualMarkDelivered(item.id);
+      };
+    } else {
+      document.getElementById('detailActions').style.display = 'none';
+    }
+    
+    document.getElementById('detailModal').classList.add('open');
+  }
+  
+  function closeDetail() {
+    document.getElementById('detailModal').classList.remove('open');
+  }
+  
+  function openConfirm(id) {
+    document.getElementById('confirmModal').classList.add('open');
+    document.getElementById('confirmOkBtn').onclick = () => {
+      closeConfirm();
+      processDelivery(id);
+    };
+  }
+  
+  function closeConfirm() {
+    document.getElementById('confirmModal').classList.remove('open');
+  }
+
+  function openScanner() {
+    document.getElementById('scannerModal').classList.add('open');
+    if(!html5QrcodeScanner) {
+      html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+    }
+    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+    isScanning = true;
+  }
+  
+  function closeScanner() {
+    document.getElementById('scannerModal').classList.remove('open');
+    if(html5QrcodeScanner && isScanning) {
+      html5QrcodeScanner.clear().catch(err => console.error(err));
+      isScanning = false;
+    }
+  }
+  
+  async function onScanSuccess(decodedText, decodedResult) {
+    if(!isScanning) return;
+    
+    // Pause scanning
+    isScanning = false;
+    html5QrcodeScanner.pause();
+    
+    showToast(`Scanning: ${decodedText}...`);
+    await processDelivery(decodedText);
+    
+    setTimeout(() => {
+      closeScanner();
+    }, 1500);
+  }
+  
+  function manualMarkDelivered(id) {
+    openConfirm(id);
+  }
+  
+  async function processDelivery(id) {
+    // 1. Optimistic Update (Instant UI Reactivity)
+    const item = allDocs.find(d => d.id === id);
+    if(item) {
+      item.status = "Delivered";
+      renderData(); // Instantly moves it to history tab
+      showToast('Marked as Delivered!');
+    }
+    
+    // 2. Background Sync
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'markDelivered', id: id, messengerName: 'Admin (Whiteboard)' })
+      });
+      const json = await res.json();
+      if(!json.success && json.message !== 'Already delivered') {
+        showToast('Error: ' + json.error);
+        // Rollback on error
+        if(item) { item.status = "Pending"; renderData(); }
+      }
+    } catch(e) {
+      showToast('Network error while updating.');
+      // Rollback on error
+      if(item) { item.status = "Pending"; renderData(); }
+    }
+  }
+  
+  function onScanFailure(error) {}
+  
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.innerText = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+  
+  // Initial load
+  fetchData();
+</script>
+</body>
+</html>

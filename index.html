@@ -1,0 +1,3486 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Proof of Delivery">
+<meta name="theme-color" content="#F9F8F3">
+<link rel="manifest" href='data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Proof%20of%20Delivery%22%2C%22short_name%22%3A%22POD%22%2C%22description%22%3A%22Proof%20of%20Delivery%20Document%20Generator%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23F9F8F3%22%2C%22theme_color%22%3A%22%23F9F8F3%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22icon.png%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%7D%2C%7B%22src%22%3A%22icon.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D'>
+<link rel="apple-touch-icon" href="icon.png">
+<title>Proof of Delivery</title>
+<link rel="icon" type="image/png" href="icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Hanuman:wght@400;700&family=Cormorant+Garamond:wght@600;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════ */
+:root {
+  --red:    #E00028;
+  --red-dim: rgba(224, 0, 40, 0.08);
+  
+  --dark:   #2C2A26;
+  --mid:    #8A877E;
+  --muted:  #B0AD9E;
+  --border: #E6E2D3;
+  --border-focus: rgba(224, 0, 40, 0.4);
+  
+  --bg:     #F9F8F3;
+  --white:  #FFFFFF;
+  --input-bg: #F3F1EA;
+
+  /* print ink — set dynamically */
+  --ink-p:    #0D0D1A;
+  --ink-s:    #3A3A5C;
+  --ink-m:    #6B6B8A;
+  --ink-bd:   #C4C4D8;
+  --ink-stripe: rgba(0,0,0,0.032);
+  --ink-th:   #1C1C2E;
+  --ink-th-t: #FFFFFF;
+  --ink-acc:  #C8102E;
+  --ink-sig:  rgba(0,0,0,0.022);
+  --paper:    #FFFFFF;
+}
+
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════
+   RESET
+═══════════════════════════════════════ */
+*,*::before,*::after {
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;    /* Firefox */
+}
+*::-webkit-scrollbar {
+  display: none;            /* Chrome, Safari and Opera */
+}
+
+body, input, button, select, textarea {
+  font-family: 'DM Sans', 'Battambang', 'Khmer OS Battambang', 'Hanuman', sans-serif;
+}
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+body {
+  background: var(--bg);
+  color: var(--dark);
+  min-height: 100vh;
+  touch-action: pan-y;
+}
+
+/* ═══════════════════════════════════════
+   FORM PAGE  (the only screen element)
+═══════════════════════════════════════ */
+.page {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 1.2rem 1.5rem 2.5rem;
+}
+
+/* top bar */
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.25rem;
+}
+
+.top-logo { display: none !important; }
+
+.top-brand strong {
+  display: block;
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--dark);
+  line-height: 1.2;
+}
+
+.top-brand span { font-size: .8rem; color: var(--muted); }
+
+.top-spacer { flex: 1; }
+
+.print-btn {
+  background: linear-gradient(135deg, #2563EB, #1D4ED8);
+  color: #fff;
+  border: none;
+  padding: .45rem 1.1rem;
+  border-radius: 99px;
+  font-family: 'DM Sans', 'Battambang', sans-serif;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+.print-btn svg { flex-shrink: 0; }
+.print-btn:hover { background: linear-gradient(135deg, #1D4ED8, #1E3A8A); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35); }
+.print-btn:active { transform: translateY(0); }
+
+.clear-btn {
+  background: var(--white);
+  border: 1px solid var(--border);
+  color: var(--mid);
+  padding: .45rem 1.1rem;
+  border-radius: 99px;
+  font-family: 'DM Sans', 'Battambang', sans-serif;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+.clear-btn:hover {
+  border-color: var(--dark);
+  color: var(--dark);
+  background: var(--input-bg);
+}
+
+/* Card grid */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.2rem 1.4rem 1.4rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.card:hover {
+  border-color: rgba(224, 0, 40, 0.2);
+}
+
+.card-full {
+  grid-column: 1 / -1;
+}
+
+.card-title {
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: .6rem;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+.card-title::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 12px;
+  background: var(--red);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.g1 { display: grid; grid-template-columns: 1fr; gap: .5rem; }
+
+.field { display: flex; flex-direction: column; gap: .15rem; }
+
+label {
+  font-size: .76rem;
+  color: var(--muted);
+  font-weight: 500;
+  font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', sans-serif;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="number"],
+textarea, select {
+  background: var(--input-bg);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: .55rem .75rem;
+  font-size: 16px;
+  color: var(--dark);
+  font-family: 'DM Sans', 'Battambang', sans-serif;
+  width: 100%;
+  transition: border-color .15s, box-shadow .15s, background-color .15s;
+  resize: vertical;
+}
+
+input[type="text"]:focus,
+input[type="date"]:focus,
+input[type="number"]:focus,
+textarea:focus, select:focus {
+  outline: none;
+  background: var(--white);
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px var(--red-dim);
+}
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23DCE8DF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1em;
+  padding-right: 2.5rem !important;
+}
+
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  background: var(--input-bg);
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+input[type="checkbox"]:checked {
+  background: var(--red);
+  border-color: var(--red);
+}
+input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 4.5px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator { 
+  opacity: 0.5;
+  filter: invert(0.8) sepia(0.2) hue-rotate(90deg);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Items table inside card */
+.items-hd {
+  display: grid;
+  grid-template-columns: 2fr 1.1fr .6fr .6fr 1.4fr;
+  gap: .3rem;
+  margin-bottom: .2rem;
+  padding: 0 .1rem;
+}
+
+.items-hd span {
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.item-row {
+  display: grid;
+  grid-template-columns: 2fr 1.1fr .6fr .6fr 1.4fr;
+  gap: .3rem;
+  margin-bottom: .25rem;
+}
+
+.qty-inp, .pages-inp {
+  background: var(--input-bg);
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  padding: .4rem .2rem;
+  font-size: 16px;
+  color: var(--dark);
+  font-family: 'DM Sans', sans-serif;
+  text-align: center;
+  width: 100%;
+  transition: border-color .18s, box-shadow .18s, background .18s;
+}
+.qty-inp:focus, .pages-inp:focus { 
+  outline: none; 
+  border-color: var(--border-focus); 
+  background: rgba(0,0,0,0.4);
+  box-shadow: 0 0 0 3px var(--red-dim);
+}
+
+textarea.f-rem {
+  height: 100%;
+  min-height: 38px;
+  padding: .4rem .5rem;
+  line-height: 1.35;
+  font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', 'DM Sans', sans-serif;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.row-ctrl {
+  display: flex;
+  gap: .4rem;
+  margin-top: .55rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.row-ctrl > span { font-size: .8rem; color: var(--muted); font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', sans-serif; }
+
+.btn-row {
+  background: var(--white);
+  border: 1px solid var(--border);
+  color: var(--mid);
+  padding: .26rem .7rem;
+  border-radius: 99px;
+  font-size: .82rem;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-row:hover { border-color: var(--dark); color: var(--dark); background: var(--input-bg); }
+.btn-row.active { border-color: var(--dark); background: var(--dark); color: #fff; }
+
+#rowBtns .btn-row { background: #000; color: #fff; border-color: #000; }
+#rowBtns .btn-row:hover { background: #222; border-color: #222; color: #fff; }
+#rowBtns .btn-row.active { background: var(--red); border-color: var(--red); color: #fff; }
+
+/* ═══════════════════════════════════════
+   PAPER-COLOUR MODAL
+═══════════════════════════════════════ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,10,30,.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2.2rem 2.2rem 1.8rem;
+  width: 480px;
+  max-width: 92vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.08);
+  transform: translateY(12px);
+  transition: transform .22s;
+}
+.modal-overlay.open .modal { transform: translateY(0); }
+
+.modal-title {
+  font-family: 'Hanuman', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: .4rem;
+}
+
+.modal-sub {
+  font-size: .8rem;
+  color: var(--muted);
+  margin-bottom: 1.5rem;
+  line-height: 1.45;
+}
+
+.modal-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.6rem;
+}
+
+.m-opt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .35rem;
+  cursor: pointer;
+}
+
+.m-opt input { display: none; }
+
+.m-swatch {
+  width: 100%;
+  aspect-ratio: 3/4;
+  border-radius: 8px;
+  border: 2.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .75rem;
+  font-weight: 700;
+  transition: border-color .16s, box-shadow .16s;
+  position: relative;
+  overflow: hidden;
+}
+
+/* paper lines texture */
+.m-swatch::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg, transparent 0, transparent 8px,
+    rgba(0,0,0,.04) 8px, rgba(0,0,0,.04) 9px
+  );
+}
+
+.sw-w { background: #E0E0E0; color: #333; }
+.sw-y { background: #E6D5A1; color: #665000; }
+.sw-g { background: #B5D1BD; color: #1E5023; }
+.sw-b { background: #A9CAE6; color: #104080; }
+
+.m-opt input:checked + .m-swatch {
+  border-color: var(--red);
+  box-shadow: 0 0 0 4px rgba(200,16,46,.14);
+}
+
+.m-opt-name { font-size: .75rem; color: var(--mid); font-weight: 600; }
+
+.modal-actions { display: flex; gap: .6rem; justify-content: flex-end; }
+
+.btn-cancel {
+  background: var(--white);
+  border: 1px solid var(--border);
+  color: var(--mid);
+  padding: .55rem 1.2rem;
+  border-radius: 99px;
+  font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', sans-serif;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-cancel:hover { border-color: var(--dark); color: var(--dark); background: var(--input-bg); }
+
+.btn-confirm {
+  background: var(--dark);
+  border: none;
+  color: #fff;
+  padding: .55rem 1.4rem;
+  border-radius: 99px;
+  font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', sans-serif;
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.15);
+  transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-confirm:hover { background: #000; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(17, 24, 39, 0.25); }
+
+/* ═══════════════════════════════════════
+   MINI CALCULATOR
+═══════════════════════════════════════ */
+.mini-calc {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 280px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12), 0 16px 48px rgba(0,0,0,0.16);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s;
+}
+.mini-calc.hidden {
+  transform: translateY(20px) scale(0.95);
+  opacity: 0;
+  pointer-events: none;
+}
+.calc-header {
+  background: var(--input-bg);
+  color: var(--dark);
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'DM Sans', sans-serif;
+  user-select: none;
+  border-bottom: 1px solid var(--border);
+  cursor: grab;
+}
+.calc-header:active { cursor: grabbing; }
+.calc-header button {
+  background: none;
+  border: none;
+  color: var(--dark);
+  font-size: 1.2rem;
+  cursor: pointer;
+  line-height: 1;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+.calc-header button:hover { opacity: 1; }
+.calc-history {
+  height: 90px;
+  background: var(--white);
+  padding: 0.5rem;
+  overflow-y: auto;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  border-bottom: 1px solid var(--border);
+}
+.calc-history-item {
+  text-align: right;
+  padding: 0.15rem 0.25rem;
+  border-radius: 4px;
+}
+.calc-history-item:hover { background: var(--input-bg); }
+.calc-display {
+  padding: 0.8rem 1rem;
+  background: transparent;
+}
+.calc-display input {
+  width: 100%;
+  border: none;
+  text-align: right;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--dark);
+  font-family: 'DM Sans', sans-serif;
+  outline: none;
+  background: transparent;
+}
+.calc-keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+}
+.calc-keys button {
+  background: var(--white);
+  border: none;
+  padding: 0.8rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  color: var(--dark);
+  transition: background 0.1s;
+}
+.calc-keys button:hover { background: var(--input-bg); }
+.calc-keys button:active { background: #e5e7eb; }
+.calc-keys button.op { color: var(--red); background: #fffafa; font-weight: 700; }
+.calc-keys button.op:hover { background: rgba(224,0,40,0.06); }
+.calc-keys button.act { font-size: 0.85rem; background: var(--input-bg); color: var(--mid); }
+.calc-keys button.act:hover { background: #e5e7eb; }
+
+@media (max-width: 480px) {
+  .mini-calc {
+    width: auto;
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+  }
+}
+
+/* ═══════════════════════════════════════
+   PRINTABLE DOCUMENT  (hidden on screen)
+═══════════════════════════════════════ */
+#printDoc { display: none; }
+
+@media print {
+  body > .page  { display: none !important; }
+  .modal-overlay { display: none !important; }
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    background: var(--paper) !important;
+  }
+  #printDoc {
+    display: block !important;
+    font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', 'DM Sans', sans-serif;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 210mm !important;
+    height: 297mm !important;
+  }
+}
+
+/* ═══════════════════════════════════════
+   PRINT PAGE STYLES  (A4)
+═══════════════════════════════════════ */
+@page {
+  size: A4;
+  margin: 6mm 8mm 6mm 8mm;
+}
+
+/* Hidden on screen at all times */
+#printDoc {
+  display: none;
+}
+
+#printDoc .pd-wrap {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  transform-origin: top left;
+}
+
+/* accent bar */
+#printDoc .pd-accent {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 5mm;
+  background: var(--ink-acc);
+}
+
+/* ── HEADER ── */
+#printDoc .pd-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-bottom: 4mm;
+  border-bottom: 1.5pt solid var(--ink-bd);
+  margin-bottom: 4mm;
+  gap: 1.5mm;
+  position: relative;
+}
+
+#qrcode-container canvas,
+#qrcode-container img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
+}
+
+#printDoc .pd-logo {
+  height: 26mm;
+  width: auto;
+  max-width: 90mm;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+
+#printDoc .pd-logo-fb {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22pt;
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: var(--ink-p);
+}
+
+#printDoc .pd-company {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 17pt;
+  font-weight: 700;
+  color: var(--ink-p);
+  letter-spacing: .01em;
+  line-height: 1.3;
+}
+
+#printDoc .pd-badge {
+  display: inline-block;
+  font-size: 9.5pt;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-acc);
+  border: 1.2pt solid var(--ink-acc);
+  padding: 0.8mm 4mm;
+  border-radius: 10mm;
+  font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', 'DM Sans', sans-serif;
+  margin-top: 2.5mm;
+}
+
+/* ── META ── */
+#printDoc .pd-meta {
+  display: grid;
+  grid-template-columns: 23% 27% 23% 27%;
+  border-top: 1pt solid var(--ink-bd);
+  border-bottom: 1pt solid var(--ink-bd);
+  overflow: hidden;
+  margin-bottom: 3.5mm;
+}
+
+#printDoc .pd-meta-cell {
+  padding: 2mm 3mm;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+/* Horizontal cell dividers (except last row) */
+#printDoc .pd-meta-cell {
+  border-bottom: 1pt solid var(--ink-bd);
+}
+#printDoc .pd-meta-cell:nth-last-child(-n+4) {
+  border-bottom: none;
+}
+
+
+
+#printDoc .pd-meta-lbl {
+  background-color: rgba(0, 0, 0, 0.03);
+  color: var(--ink-m);
+  font-size: 8pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', 'DM Sans', sans-serif;
+  white-space: nowrap;
+}
+
+#printDoc .pd-meta-val {
+  color: var(--ink-p);
+  font-size: 10.5pt;
+  font-weight: 700;
+  font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', 'DM Sans', sans-serif;
+}
+
+#printDoc #pd-sender,
+#printDoc #pd-date {
+  font-weight: normal;
+}
+
+#printDoc .pd-mk {
+  font-size: 8.5pt;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-m);
+  font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', 'DM Sans', sans-serif;
+  margin-bottom: .5mm;
+}
+
+#printDoc .pd-mv {
+  font-size: 11.5pt;
+  color: var(--ink-p);
+  min-height: 4.5mm;
+  border-bottom: .75pt solid var(--ink-bd);
+  padding-bottom: .8mm;
+  font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', sans-serif;
+}
+
+#printDoc .pd-msp { margin-top: 4.5mm; }
+
+/* ── SUBJECT ── */
+#printDoc .pd-subject { margin-bottom: 3mm; }
+
+#printDoc .pd-subk {
+  font-size: 8.5pt;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-m);
+  font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', 'DM Sans', sans-serif;
+  margin-bottom: .6mm;
+}
+
+#printDoc .pd-subv {
+  font-size: 13.5pt;
+  font-weight: 700;
+  color: var(--ink-p);
+  font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', sans-serif;
+  border-bottom: 1.5pt solid var(--ink-p);
+  padding-bottom: 1.2mm;
+  min-height: 6mm;
+  line-height: 1.4;
+}
+
+/* ── TABLE ── */
+#printDoc table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 4mm;
+  font-size: 10.5pt;
+}
+
+#printDoc table thead tr { background: var(--ink-th); }
+
+#printDoc table thead th {
+  padding: 1.5mm 2mm;
+  text-align: left;
+  font-size: 9pt;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-th-t);
+  font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', 'DM Sans', sans-serif;
+  line-height: 1.2;
+}
+
+#printDoc table thead th.c { text-align: center; }
+
+#printDoc table tbody tr:nth-child(even) { background: var(--ink-stripe); }
+#printDoc table tbody tr { border-bottom: .8pt solid var(--ink-bd); }
+
+#printDoc table tbody td {
+  padding: 1.2mm 2mm;
+  font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', sans-serif;
+  vertical-align: middle;
+  font-size: 10pt;
+  line-height: 1.25;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+#printDoc table tbody td.c { text-align: center; font-weight: 700; font-size: 11.5pt; }
+#printDoc table tbody td.num {
+  color: var(--ink-m);
+  font-size: 9.5pt;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+}
+
+#printDoc table tfoot tr {
+  border-top: 2pt solid var(--ink-p);
+  background: var(--ink-th);
+}
+
+#printDoc table tfoot td {
+  padding: 1.5mm 2mm;
+  font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', 'DM Sans', sans-serif;
+  font-size: 9.5pt;
+  font-weight: 700;
+  color: var(--ink-th-t);
+}
+
+#printDoc table tfoot td.total-num {
+  text-align: center;
+  font-size: 13pt;
+  font-weight: 700;
+  color: var(--ink-th-t);
+  font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', 'DM Sans', sans-serif;
+}
+
+/* ── SIGNATURE ── */
+#printDoc .pd-sig {
+  border: 2pt solid var(--ink-p);
+  border-radius: 2mm;
+  overflow: hidden;
+  margin-top: auto;
+  margin-bottom: 0;
+}
+
+#printDoc .pd-sig-hd {
+  background: var(--ink-th);
+  padding: 2.2mm 3.5mm;
+  display: flex;
+  align-items: center;
+  gap: 2.5mm;
+}
+
+#printDoc .pd-sig-hd-txt { line-height: 1.3; }
+
+#printDoc .pd-sig-km {
+  font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', sans-serif;
+  font-size: 10pt;
+  font-weight: 700;
+  color: #fff;
+  display: block;
+}
+
+#printDoc .pd-sig-en {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 8pt;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.5);
+  display: block;
+}
+
+#printDoc .pd-sig-body {
+  padding: 3.5mm 3.5mm 4mm;
+  background: var(--ink-sig);
+}
+
+/* Three equal columns */
+#printDoc .pd-sig-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4mm;
+  align-items: stretch;
+}
+
+#printDoc .pd-sig-col { display: flex; flex-direction: column; }
+
+#printDoc .pd-sig-lbl {
+  font-size: 8.5pt;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-s);
+  font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', 'DM Sans', sans-serif;
+  margin-bottom: .8mm;
+}
+
+#printDoc .pd-sig-km2 {
+  font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', sans-serif;
+  font-size: 9pt;
+  color: var(--ink-m);
+  margin-bottom: 1.5mm;
+  display: block;
+}
+
+/* underline field */
+#printDoc .pd-line {
+  border-bottom: 1.5pt solid var(--ink-p);
+  height: 8mm;
+  margin-bottom: 1mm;
+}
+
+/* date boxes */
+#printDoc .pd-date-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 1mm;
+  margin-bottom: 2.5mm;
+}
+
+#printDoc .pd-date-cell { flex: 1; display: flex; flex-direction: column; align-items: center; }
+#printDoc .pd-date-cell.wide { flex: 1.5; }
+
+#printDoc .pd-date-ln {
+  border-bottom: 1.5pt solid var(--ink-p);
+  height: 8mm;
+  width: 100%;
+  margin-bottom: .8mm;
+}
+
+#printDoc .pd-date-hint {
+  font-size: 7.5pt;
+  color: var(--ink-m);
+  font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', 'DM Sans', sans-serif;
+  font-style: italic;
+  text-align: center;
+  white-space: nowrap;
+}
+
+#printDoc .pd-date-sep {
+  font-size: 10pt;
+  color: var(--ink-m);
+  padding-bottom: 2mm;
+  line-height: 1;
+}
+
+/* signature box — fills remaining column height */
+#printDoc .pd-sig-box {
+  border: 1.5pt solid var(--ink-p);
+  border-radius: 1.5mm;
+  flex: 1;
+  min-height: 22mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5mm;
+  background: transparent;
+  margin-bottom: 2.5mm;
+}
+
+#printDoc .pd-sig-box-hint {
+  font-size: 7.5pt;
+  color: var(--ink-bd);
+  font-family: 'DM Sans', sans-serif;
+  font-style: italic;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+#printDoc .pd-hint {
+  font-size: 7.5pt;
+  color: var(--ink-m);
+  font-family: 'DM Sans', sans-serif;
+  font-style: italic;
+  margin-top: 2.5mm;
+}
+
+/* ── FOOTER ── */
+#printDoc .pd-footer {
+  padding-top: 2.5mm;
+  border-top: .75pt solid var(--ink-bd);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 3mm;
+}
+
+#printDoc .pd-footer-l { font-size: 7.5pt; color: var(--ink-m); font-family: 'DM Sans', sans-serif; }
+#printDoc .pd-footer-r { font-size: 7.5pt; color: var(--ink-m); font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', sans-serif; }
+
+/* ═══════════════════════════════════════
+   RESPONSIVE FORM
+═══════════════════════════════════════ */
+@media (max-width: 700px) {
+  .card-grid { grid-template-columns: 1fr; }
+  .card-full { grid-column: 1; }
+  .page { padding: 1.5rem 1rem 3rem; }
+  .g2 { grid-template-columns: 1fr; }
+  
+  .top-bar {
+    flex-wrap: wrap;
+    padding-bottom: 1rem;
+  }
+  .top-actions {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0.5rem;
+  }
+  .top-actions::-webkit-scrollbar { display: none; }
+  
+  .table-scroll-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    scrollbar-width: none;
+  }
+  .table-scroll-wrapper::-webkit-scrollbar { display: none; }
+  .table-scroll-inner { min-width: 600px; padding-bottom: 4px; }
+}
+
+@media (max-width: 480px) {
+  .modal-options { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ── state management & custom logo ── */
+/* ═══════════════════════════════════════
+   SETTINGS DROPDOWN (LOGO & STORAGE)
+   ═══════════════════════════════════════ */
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+}
+.settings-dropdown {
+  position: relative;
+}
+.settings-btn {
+  background: var(--white);
+  border: 1px solid var(--border);
+  color: var(--mid);
+  padding: .45rem 1.1rem;
+  border-radius: 99px;
+  font-family: 'DM Sans', 'Battambang', sans-serif;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  list-style: none;
+  white-space: nowrap;
+}
+.settings-btn::-webkit-details-marker {
+  display: none;
+}
+.settings-btn:hover {
+  border-color: var(--dark);
+  color: var(--dark);
+  background: var(--input-bg);
+}
+.settings-dropdown[open] .settings-btn {
+  border-color: var(--dark);
+  color: var(--dark);
+  background: var(--input-bg);
+}
+.settings-dropdown-content {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.25rem;
+  width: 320px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.08);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+.dropdown-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.dropdown-section-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--red);
+}
+.dropdown-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0.1rem 0;
+}
+.logo-upload-zone {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.upload-box {
+  flex: 1;
+  min-width: 220px;
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  background: var(--input-bg);
+}
+.upload-box:hover, .upload-box.dragover {
+  border-color: var(--red);
+  background: rgba(224, 0, 40, 0.04);
+}
+.upload-icon {
+  color: var(--muted);
+  transition: color 0.2s;
+}
+.upload-box:hover .upload-icon {
+  color: var(--red);
+}
+.upload-text strong {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--dark);
+  margin-bottom: 0.15rem;
+}
+.upload-text span {
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+.logo-preview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem;
+  background: var(--input-bg);
+  min-width: 140px;
+}
+#logoPreview {
+  max-height: 48px;
+  max-width: 120px;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+.memory-status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.status-dot.green {
+  background-color: #2e7d32;
+}
+.status-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--dark);
+}
+.memory-desc {
+  font-size: 0.65rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* Optional ID/Ref Column Styling */
+body.hide-id-col .col-id,
+body.hide-id-col .f-id {
+  display: none !important;
+}
+body.hide-id-col .items-hd,
+body.hide-id-col .item-row {
+  grid-template-columns: 2fr .6fr .6fr 2fr !important;
+}
+@media (max-width: 480px) {
+  body.hide-id-col .items-hd,
+  body.hide-id-col .item-row {
+    grid-template-columns: 1.8fr .5fr .5fr 1.4fr !important;
+  }
+}
+body.hide-id-col #printDoc table thead th:nth-child(2) {
+  width: 34% !important;
+}
+body.hide-id-col #printDoc table thead th:nth-child(5) {
+  width: 56% !important;
+}
+
+/* Optional Language Control Styling */
+body.lang-km .lang-en,
+body.lang-km .lang-divider {
+  display: none !important;
+}
+body.lang-en .lang-km,
+body.lang-en .lang-divider {
+  display: none !important;
+}
+
+/* Bilingual layout text shrinking to prevent crowding when both languages are shown together */
+body.lang-bilingual label {
+  font-size: 0.68rem !important;
+}
+body.lang-bilingual .card-title {
+  font-size: 0.68rem !important;
+}
+body.lang-bilingual .items-hd span {
+  font-size: 0.65rem !important;
+}
+body.lang-bilingual .top-brand span {
+  font-size: 0.68rem !important;
+}
+body.lang-bilingual #printDoc .pd-badge {
+  font-size: 7.5pt !important;
+}
+body.lang-bilingual #printDoc .pd-mk,
+body.lang-bilingual #printDoc .pd-subk {
+  font-size: 6.8pt !important;
+}
+body.lang-bilingual #printDoc table thead th {
+  font-size: 7.8pt !important;
+}
+body.lang-bilingual #printDoc table tfoot td {
+  font-size: 8pt !important;
+}
+body.lang-bilingual #printDoc .pd-sig-lbl {
+  font-size: 6.8pt !important;
+}
+body.lang-bilingual #printDoc .pd-sig-km2 {
+  font-size: 7.5pt !important;
+}
+body.lang-bilingual #printDoc .pd-date-hint,
+body.lang-bilingual #printDoc .pd-sig-box-hint,
+body.lang-bilingual #printDoc .pd-hint {
+  font-size: 6pt !important;
+}
+
+/* History feature */
+.search-bar { display: flex; gap: 1rem; margin-bottom: 2rem; }
+.search-bar input { flex: 1; background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; font-size: 16px; font-family: inherit; outline: none; box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all .2s; }
+.search-bar input:focus { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-dim); }
+.history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+.history-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 16px rgba(0,0,0,0.03); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
+.history-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+.history-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+.history-card-title { font-weight: 700; font-size: 1.1rem; color: var(--red); margin-bottom: 0.25rem; }
+.history-card-date { font-size: 0.8rem; color: var(--muted); }
+.history-card-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem; }
+.history-card-label { color: var(--mid); font-size: 0.8rem; }
+.history-card-value { font-weight: 500; text-align: right; max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.history-modal { background: var(--white); border-radius: 16px; padding: 2rem; width: 800px; max-width: 90vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 80px rgba(0,0,0,0.1); transform: translateY(12px); transition: transform .2s; }
+.modal-overlay.open .history-modal { transform: translateY(0); }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+.detail-item { background: var(--input-bg); padding: 1rem; border-radius: 8px; }
+.detail-label { font-size: 0.75rem; color: var(--mid); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+.detail-value { font-weight: 500; }
+.items-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+.items-table th { text-align: left; padding: 0.5rem; font-size: 0.8rem; color: var(--mid); border-bottom: 1px solid var(--border); }
+.items-table td { padding: 0.5rem; font-size: 0.9rem; border-bottom: 1px solid var(--input-bg); }
+.empty-state { text-align: center; padding: 4rem; color: var(--muted); font-size: 1.1rem; }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="top-bar">
+    <img class="top-logo"
+         src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Lockton_Logo_32mm_Black_(1).png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original"
+         alt="Lockton" id="formLogo">
+    <!-- Tools Dropdown -->
+    <details class="settings-dropdown" style="margin-left: 1rem; margin-right: 1rem;">
+      <summary class="settings-btn" style="background: linear-gradient(to right, #f4fafe, #e6f4fc); border-color: #72bbf0; color: #44a5e3;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+        </svg>
+        Tools
+      </summary>
+      <div class="settings-dropdown-content" style="width: 200px; padding: 0.5rem; gap: 0.2rem; left: 0; right: auto;">
+        <a href="https://example.com" target="_blank" style="display: block; padding: 0.8rem 1rem; text-decoration: none; color: var(--dark); font-family: 'DM Sans', sans-serif; font-weight: 600; border-radius: 8px; font-size: 0.9rem; transition: background 0.15s;" onmouseover="this.style.background='var(--input-bg)'" onmouseout="this.style.background='transparent'">White Board</a>
+        <a href="https://onlinereq.github.io/Attendance/" target="_blank" style="display: block; padding: 0.8rem 1rem; text-decoration: none; color: var(--dark); font-family: 'DM Sans', sans-serif; font-weight: 600; border-radius: 8px; font-size: 0.9rem; transition: background 0.15s;" onmouseover="this.style.background='var(--input-bg)'" onmouseout="this.style.background='transparent'">Attendance</a>
+      </div>
+    </details>
+
+    <div class="top-brand">
+      <span><span class="lang-km">បញ្ជាក់ការដឹកជញ្ជូន</span><span class="lang-divider"> &nbsp;·&nbsp; </span><span class="lang-en">Proof of Delivery</span></span>
+    </div>
+
+    <div class="top-spacer"></div>
+    <div class="top-actions">
+      <!-- Settings Button -->
+      <button class="settings-btn" onclick="openSettingsModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span class="lang-km">ការកំណត់</span><span class="lang-divider"> / </span><span class="lang-en">Settings</span>
+      </button>
+      <button class="clear-btn" onclick="toggleCalc()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+          <line x1="8" y1="6" x2="16" y2="6"></line>
+          <line x1="16" y1="10" x2="16" y2="10.01"></line>
+          <line x1="12" y1="10" x2="12" y2="10.01"></line>
+          <line x1="8" y1="10" x2="8" y2="10.01"></line>
+          <line x1="16" y1="14" x2="16" y2="14.01"></line>
+          <line x1="12" y1="14" x2="12" y2="14.01"></line>
+          <line x1="8" y1="14" x2="8" y2="14.01"></line>
+          <line x1="16" y1="18" x2="16" y2="18.01"></line>
+          <line x1="12" y1="18" x2="12" y2="18.01"></line>
+          <line x1="8" y1="18" x2="8" y2="18.01"></line>
+        </svg>
+        <span class="lang-km">គិតលេខ</span><span class="lang-divider"> / </span><span class="lang-en">Calc</span>
+      </button>
+      <button class="clear-btn" onclick="openHistoryModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span class="lang-km">ប្រវត្តិ</span><span class="lang-divider"> / </span><span class="lang-en">History</span>
+      </button>
+
+      <button class="print-btn" onclick="openModal()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/>
+        <rect x="6" y="14" width="12" height="8"/>
+      </svg>
+      <span class="lang-km">បោះពុម្ព</span><span class="lang-divider"> / </span><span class="lang-en">Print</span>
+    </button>
+  </div>
+  </div>
+
+  <div class="card-grid">
+
+    <div class="card">
+      <div class="card-title"><span class="lang-km">អ្នកផ្ញើ</span><span class="lang-divider"> / </span><span class="lang-en">Sender</span></div>
+      <div class="g1">
+        <div class="field">
+          <label><span class="lang-km">ឈ្មោះអ្នកផ្ញើ</span><span class="lang-divider"> / </span><span class="lang-en">Sender Name</span></label>
+          <input type="text" id="senderName" placeholder="ឈ្មោះពេញ / Full Name" oninput="sync()">
+        </div>
+        <div class="field">
+          <label><span class="lang-km">កាលបរិច្ឆេទផ្ញើ</span><span class="lang-divider"> / </span><span class="lang-en">Date Sent</span></label>
+          <input type="date" id="sendDate" oninput="sync()">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="lang-km">អ្នកទទួល</span><span class="lang-divider"> / </span><span class="lang-en">Receiver</span></div>
+      <div class="g1">
+        <div class="field">
+          <label><span class="lang-km">ឈ្មោះអ្នកទទួល</span><span class="lang-divider"> / </span><span class="lang-en">Receiver Name</span></label>
+          <input type="text" id="receiverName" placeholder="ឈ្មោះពេញ / Full Name" oninput="sync()">
+        </div>
+        <div class="field">
+          <label><span class="lang-km">លេខទូរស័ព្ទអ្នកទទួល</span><span class="lang-divider"> / </span><span class="lang-en">Receiver Contact</span></label>
+          <input type="text" id="receiverContact" placeholder="លេខទូរស័ព្ទ / Phone Number" oninput="sync()">
+        </div>
+        <div class="field" style="margin-top: 0.2rem;">
+          <label><span class="lang-km">ទីតាំងដឹកជញ្ជូន</span><span class="lang-divider"> / </span><span class="lang-en">Delivery Location</span></label>
+          <input type="text" id="deliveryLoc" placeholder="ការិយាល័យ / អាសយដ្ឋាន | Office / Address" oninput="sync()">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="lang-km">ប្រធានបទ</span><span class="lang-divider"> / </span><span class="lang-en">Subject &amp; Package</span></div>
+      <div class="g1">
+        <div class="field">
+          <label><span class="lang-km">ចំណងជើង</span><span class="lang-divider"> / </span><span class="lang-en">Title</span></label>
+          <input type="text" id="deliveryTitle" placeholder="ឧ. ឯកសារដើមរបស់ ABC ពី DEC / e.g. Original ABC from DEC" oninput="sync()">
+        </div>
+        <div class="field">
+          <label><span class="lang-km">ចំនួនទំព័រសរុប</span><span class="lang-divider"> / </span><span class="lang-en">Total Pages</span></label>
+          <input type="number" min="0" id="totalPages" placeholder="ឧ. ៥ / e.g. 5" oninput="sync()">
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-full">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .6rem;">
+        <div class="card-title" style="margin-bottom: 0;"><span class="lang-km">បញ្ជីវត្ថុ</span><span class="lang-divider"> / </span><span class="lang-en">Items</span></div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <button class="btn-row" onclick="clearItems()" style="padding: 0.2rem 0.6rem; color: var(--red); border-color: rgba(224, 0, 40, 0.2);">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 2px;">
+              <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            <span class="lang-km">សម្អាតបញ្ជី</span><span class="lang-divider"> / </span><span class="lang-en">Clear</span>
+          </button>
+          <div style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; user-select: none;">
+            <input type="checkbox" id="showIdColumn" onchange="toggleIdColumn()">
+            <label for="showIdColumn" style="font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', sans-serif; font-size: 0.75rem; color: var(--muted); cursor: pointer; font-weight: 500;">
+              <span class="lang-km">លេខសម្គាល់</span><span class="lang-divider"> / </span><span class="lang-en">Show ID</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-scroll-wrapper">
+        <div class="table-scroll-inner">
+          <div class="items-hd">
+            <span><span class="lang-km">ឈ្មោះ</span><span class="lang-divider"> / </span><span class="lang-en">Item</span></span>
+            <span class="col-id"><span class="lang-km">លេខសម្គាល់</span><span class="lang-divider"> / </span><span class="lang-en">ID/Ref</span></span>
+            <span><span class="lang-km">បរិ.</span><span class="lang-divider"> / </span><span class="lang-en">Qty</span></span>
+            <span><span class="lang-km">ទំព័រ</span><span class="lang-divider"> / </span><span class="lang-en">Pages</span></span>
+            <span><span class="lang-km">កំណត់ចំណាំ</span><span class="lang-divider"> / </span><span class="lang-en">Remark</span></span>
+          </div>
+
+          <div id="itemRows"></div>
+        </div>
+      </div>
+
+      <div class="row-ctrl">
+        <span><span class="lang-km">ចំនួនជួរ</span><span class="lang-divider"> / </span><span class="lang-en">Rows</span>:</span>
+        <div id="rowBtns" style="display:flex;gap:.4rem;flex-wrap:wrap"></div>
+        <span id="maxRowsHint" style="font-size:.58rem;color:var(--muted);font-style:italic;margin-left:.25rem"></span>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; margin-left: auto;">
+          <div style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; user-select: none;">
+            <input type="checkbox" id="showFooterMsg" checked onchange="toggleFooterMsg()">
+            <label for="showFooterMsg" style="font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', sans-serif; font-size: 0.75rem; color: var(--muted); cursor: pointer; font-weight: 500;">
+              <span class="lang-km">បង្ហាញសារខាងក្រោម</span><span class="lang-divider"> / </span><span class="lang-en">Show Bottom Message</span>
+            </label>
+          </div>
+          <div id="footerMsgPreview" style="font-size: 0.7rem; color: var(--mid); background: var(--input-bg); padding: 0.5rem 0.6rem; border-radius: 6px; border: 1px dashed var(--border); max-width: 320px; text-align: left; margin-top: 0.4rem; line-height: 1.4;">
+            <div class="lang-km" style="margin-bottom: 2px;">ដោយចុះហត្ថលេខាខាងលើ លោកអ្នកទទួលស្គាល់ថាបានទទួលឯកសារច្បាប់ដើម ដែលត្រូវគ្នានឹងច្បាប់ចម្លងដែលបានភ្ជាប់នៅខាងក្រោយទម្រង់នេះ។</div>
+            <div class="lang-en" style="font-style: italic;">By signing this, you acknowledge receiving the original documents that match the copy attached behind this form.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div></div><div class="modal-overlay" id="paperModal">
+  <div class="modal">
+    <div class="modal-title"><span class="lang-km">ជ្រើសពណ៌ក្រដាស</span><span class="lang-divider"> / </span><span class="lang-en">Select Paper Colour</span></div>
+    <div class="modal-sub">
+      <span class="lang-km">សូមជ្រើសរើសពណ៌ក្រដាសដែលអ្នកត្រូវបោះពុម្ព។ ពណ៌ទឹកប៊ិចនឹងតម្រូវដោយស្វ័យប្រវត្ត ដើម្បីឱ្យមើលឃើញច្បាស់បំផុត។</span>
+      <span class="lang-divider"><br></span>
+      <span class="lang-en">Select the paper colour you are printing on. The document ink will adjust automatically for best contrast.</span>
+    </div>
+
+    <div class="modal-options">
+      <div class="m-opt" onclick="selectColorAndPrint('white')">
+        <input type="radio" name="mPaper" value="white" checked>
+        <div class="m-swatch sw-w"><span class="lang-km">ស</span><span class="lang-en">W</span></div>
+        <span class="m-opt-name"><span class="lang-km">ស</span><span class="lang-divider"> / </span><span class="lang-en">White</span></span>
+      </div>
+      <div class="m-opt" onclick="selectColorAndPrint('yellow')">
+        <input type="radio" name="mPaper" value="yellow">
+        <div class="m-swatch sw-y"><span class="lang-km">ល</span><span class="lang-en">Y</span></div>
+        <span class="m-opt-name"><span class="lang-km">លឿង</span><span class="lang-divider"> / </span><span class="lang-en">Yellow</span></span>
+      </div>
+      <div class="m-opt" onclick="selectColorAndPrint('green')">
+        <input type="radio" name="mPaper" value="green">
+        <div class="m-swatch sw-g"><span class="lang-km">ប</span><span class="lang-en">G</span></div>
+        <span class="m-opt-name"><span class="lang-km">បៃតង</span><span class="lang-divider"> / </span><span class="lang-en">Green</span></span>
+      </div>
+      <div class="m-opt" onclick="selectColorAndPrint('blue')">
+        <input type="radio" name="mPaper" value="blue">
+        <div class="m-swatch sw-b"><span class="lang-km">ខ</span><span class="lang-en">B</span></div>
+        <span class="m-opt-name"><span class="lang-km">ខៀវ</span><span class="lang-divider"> / </span><span class="lang-en">Blue</span></span>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()" style="width: 100%;"><span class="lang-km">បោះបង់</span><span class="lang-divider"> / </span><span class="lang-en">Cancel</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="settingsModal" onclick="if(event.target===this) closeSettingsModal()">
+  <div class="modal" style="width: 90vw; height: auto; max-width: 850px; max-height: 90vh; display: flex; flex-direction: column; padding: 2.2rem; border-radius: 16px; box-shadow: 0 24px 80px rgba(0,0,0,0.15);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border);">
+      <h2 style="margin: 0; font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', sans-serif; font-size: 1.5rem; color: var(--dark); display: flex; align-items: center; gap: 0.8rem;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span class="lang-km">ការកំណត់</span><span class="lang-divider"> / </span><span class="lang-en">Settings</span>
+      </h2>
+      <button onclick="closeSettingsModal()" style="background: none; border: none; font-size: 2.2rem; cursor: pointer; color: var(--muted); line-height: 1; padding: 0;">&times;</button>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem; overflow-y: auto; padding-right: 0.5rem; align-content: start;">
+      
+      <!-- Logo Section -->
+      <div class="dropdown-section" style="background: var(--input-bg); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border); grid-column: 1 / -1;">
+        <span class="dropdown-section-title" style="font-size: 0.85rem;"><span class="lang-km">ឡូហ្គោ</span><span class="lang-divider"> / </span><span class="lang-en">Company Logo</span></span>
+        <div class="logo-upload-zone" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-top: 1rem;">
+          <label class="upload-box" id="dropZone" style="padding: 1.5rem; background: var(--white); height: 100%; justify-content: center;">
+            <input type="file" id="logoInput" accept="image/*" style="display: none;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="upload-icon">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <div class="upload-text">
+              <strong style="font-size: 1rem;"><span class="lang-km">អាប់ឡូតឡូហ្គោ</span><span class="lang-divider"> / </span><span class="lang-en">Upload Logo</span></strong>
+              <span style="font-size: 0.85rem;"><span class="lang-km">ទាញទម្លាក់ ឬចុចទីនេះ</span><span class="lang-divider"> / </span><span class="lang-en">Drag & drop or click here</span></span>
+            </div>
+          </label>
+          <div style="display: flex; flex-direction: column; gap: 1rem; justify-content: center;">
+            <div class="logo-url-input-container" style="display: flex; gap: 0.5rem; flex-direction: column;">
+              <label style="font-size: 0.8rem; font-weight: 600; color: var(--dark);"><span class="lang-km">បញ្ចូល Link រូបភាព Preset</span><span class="lang-divider"> / </span><span class="lang-en">Preset Logo URL:</span></label>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="logoUrlInput" value="https://upload.wikimedia.org/wikipedia/commons/f/f2/Lockton_Logo_32mm_Black_(1).png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" onkeydown="if(event.key === 'Enter') applyLogoFromUrl()" style="flex: 1; padding: 0.55rem 0.8rem; font-size: 0.9rem; border: 1.5px solid var(--border); border-radius: 8px; outline: none; transition: border-color .18s; background: var(--white); color: var(--dark);">
+                <button class="btn-row" onclick="applyLogoFromUrl()" style="padding: 0.55rem 1rem; font-size: 0.9rem; white-space: nowrap;"><span class="lang-km">រក្សាទុក</span><span class="lang-divider"> / </span><span class="lang-en">Save</span></button>
+              </div>
+            </div>
+            <div class="logo-preview-container" id="logoPreviewContainer" style="display: none; width: 100%; flex-direction: column; align-items: flex-start; gap: 0.4rem;">
+              <span style="font-size: 0.8rem; font-weight: 600; color: var(--dark);"><span class="lang-km">ឡូហ្គោបច្ចុប្បន្ន</span><span class="lang-divider"> / </span><span class="lang-en">Current Logo:</span></span>
+              <div style="display: flex; align-items: center; gap: 1rem; background: var(--white); padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid var(--border); width: 100%; box-sizing: border-box; justify-content: space-between;">
+                <img id="logoPreview" src="" alt="Custom Logo Preview" style="max-height: 36px; max-width: 150px; object-fit: contain;">
+                <button class="btn-row" onclick="resetLogo()" style="color: var(--red); border-color: rgba(200,16,46,0.2); padding: 0.35rem 0.7rem;">
+                  <span class="lang-km">លុបឡូហ្គោ</span><span class="lang-divider"> / </span><span class="lang-en">Remove</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Company Name Section -->
+      <div class="dropdown-section" style="background: var(--input-bg); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border);">
+        <span class="dropdown-section-title" style="font-size: 0.85rem;"><span class="lang-km">ឈ្មោះក្រុមហ៊ុន</span><span class="lang-divider"> / </span><span class="lang-en">Company Name</span></span>
+        <input type="text" id="companyNameInput" value="Lockton IBS Insurance Brokers (Cambodia) Co., Ltd" oninput="sync()" style="width: 100%; padding: 0.55rem 0.8rem; font-size: 0.9rem; border: 1.5px solid var(--border); border-radius: 8px; outline: none; transition: border-color .18s; background: var(--white); color: var(--dark); margin-top: 1rem;">
+      </div>
+
+      <!-- Language Section -->
+      <div class="dropdown-section" style="background: var(--input-bg); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border);">
+        <span class="dropdown-section-title" style="font-size: 0.85rem;"><span class="lang-km">ភាសា</span><span class="lang-divider"> / </span><span class="lang-en">Language</span></span>
+        <select id="langSelect" onchange="changeLanguage()" style="width: 100%; padding: 0.55rem 0.8rem; font-size: 0.9rem; border: 1.5px solid var(--border); border-radius: 8px; background: var(--white); color: var(--dark); outline: none; margin-top: 1rem;">
+          <option value="bilingual">ភាសាខ្មែរ និង អង់គ្លេស / Bilingual (KM/EN)</option>
+          <option value="km">តែភាសាខ្មែរ / Khmer Only</option>
+          <option value="en">តែភាសាអង់គ្លេស / English Only</option>
+        </select>
+      </div>
+
+      <!-- Currency Conversion Section -->
+      <div class="dropdown-section" style="background: var(--input-bg); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border);">
+        <span class="dropdown-section-title" style="font-size: 0.85rem;"><span class="lang-km">អត្រាប្តូរប្រាក់</span><span class="lang-divider"> / </span><span class="lang-en">Exchange Rate</span></span>
+        <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <label style="font-size: 0.85rem; color: var(--dark);">$1 USD = </label>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <input type="number" id="rateUsdToKhr" value="4100" oninput="saveState()" style="width: 90px; padding: 0.4rem; font-size: 0.85rem; border: 1.5px solid var(--border); border-radius: 6px; background: var(--white); color: var(--dark); outline: none; text-align: right;">
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <label style="font-size: 0.85rem; color: var(--dark);">$1 USD (Receive) = </label>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <input type="number" id="rateKhrToUsd" value="4000" oninput="saveState()" style="width: 90px; padding: 0.4rem; font-size: 0.85rem; border: 1.5px solid var(--border); border-radius: 6px; background: var(--white); color: var(--dark); outline: none; text-align: right;">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cloud Backup Section -->
+      <div class="dropdown-section" style="background: var(--input-bg); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border);">
+        <span class="dropdown-section-title" style="font-size: 0.85rem;"><span class="lang-km">បម្រុងទុកទិន្នន័យលើក្លោដ</span><span class="lang-divider"> / </span><span class="lang-en">Cloud Backup (Google Sheets)</span></span>
+        
+        
+        <div class="memory-status" style="gap: 0.5rem; margin-top: 1rem;">
+          <div class="status-indicator">
+            <span id="syncStatusDot" class="status-dot"></span>
+            <span id="syncStatusText" class="status-text" style="font-size: 0.85rem;"><span class="lang-km">មិនទាន់ដំណើរការទេ</span><span class="lang-divider"> / </span><span class="lang-en">Not configured</span></span>
+          </div>
+          
+          <div style="display: flex; gap: 0.5rem; margin-top: 0.8rem;">
+            <button class="btn-row" onclick="syncToCloud()" style="flex: 1; padding: 0.5rem; font-size: 0.85rem;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+                <path d="M21 2v6h-6"></path>
+                <path d="M21 13a9 9 0 1 1-3-7.7L21 8"></path>
+              </svg>
+              <span class="lang-km">ធ្វើសមកាលកម្ម</span><span class="lang-divider"> / </span><span class="lang-en">Sync Now</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Storage/Memory Section -->
+      <div class="dropdown-section" style="background: var(--input-bg); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border);">
+        <span class="dropdown-section-title" style="font-size: 0.85rem;"><span class="lang-km">ការចងចាំទិន្នន័យ</span><span class="lang-divider"> / </span><span class="lang-en">Memory</span></span>
+        <div class="memory-status" style="gap: 0.5rem; margin-top: 1rem;">
+          <div class="status-indicator">
+            <span class="status-dot green"></span>
+            <span class="status-text" style="font-size: 0.85rem;"><span class="lang-km">ចងចាំទិន្នន័យស្វ័យប្រវត្ត</span><span class="lang-divider"> / </span><span class="lang-en">Active</span></span>
+          </div>
+          <p class="memory-desc" style="font-size: 0.8rem;">
+            <span class="lang-km">ព័ត៌មានដែលអ្នកបានបំពេញនឹងត្រូវរក្សាទុកក្នុងកម្មវិធីរុករកដោយស្វ័យប្រវត្ត។</span>
+            <span class="lang-en" style="display:block;margin-top:2px;">Your filled information will be saved in browser memory automatically.</span>
+          </p>
+          <div style="display: flex; gap: 0.5rem; margin-top: 0.8rem;">
+            <button class="btn-row" onclick="clearFormData()" style="flex: 1; padding: 0.5rem; font-size: 0.85rem;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              <span class="lang-km">សម្អាតទិន្នន័យ</span><span class="lang-divider"> / </span><span class="lang-en">Clear Data</span>
+            </button>
+            <button class="btn-row" id="btnClearData" onclick="clearSavedData()" style="flex: 1; padding: 0.5rem; font-size: 0.85rem; color: var(--red); border-color: rgba(224, 0, 40, 0.2);">
+              <span class="lang-km">លុបការចងចាំ</span><span class="lang-divider"> / </span><span class="lang-en">Hard Reset</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="miniCalc" class="mini-calc hidden">
+  <div class="calc-header">
+    <span>Calculator</span>
+    <button onclick="toggleCalc()">×</button>
+  </div>
+  <div class="calc-history" id="calcHistory"></div>
+  <div class="calc-display">
+    <input type="text" id="calcInput" onkeydown="handleCalcKeydown(event)" oninput="handleCalcInput(event)" placeholder="0">
+  </div>
+  <div class="calc-keys">
+    <button onclick="calcKey('7')">7</button>
+    <button onclick="calcKey('8')">8</button>
+    <button onclick="calcKey('9')">9</button>
+    <button class="op" onclick="calcKey('÷')">÷</button>
+    
+    <button onclick="calcKey('4')">4</button>
+    <button onclick="calcKey('5')">5</button>
+    <button onclick="calcKey('6')">6</button>
+    <button class="op" onclick="calcKey('×')">×</button>
+    
+    <button onclick="calcKey('1')">1</button>
+    <button onclick="calcKey('2')">2</button>
+    <button onclick="calcKey('3')">3</button>
+    <button class="op" onclick="calcKey('−')">−</button>
+    
+    <button onclick="calcKey('0')">0</button>
+    <button onclick="calcKey('.')">.</button>
+    <button class="op" onclick="calcEval()" style="background:var(--red);color:#fff;">=</button>
+    <button class="op" onclick="calcKey('+')">+</button>
+
+    <button class="act" onclick="calcClear()">AC</button>
+    <button class="act" onclick="calcDel()">DEL</button>
+    <button class="act" onclick="calcClearHistory()" style="grid-column: span 2;">Clear History</button>
+    
+    <button class="act" onclick="convToKHR()" style="grid-column: span 2; font-size: 0.8rem; background: var(--border); color: var(--dark);">USD → KHR</button>
+    <button class="act" onclick="convToUSD()" style="grid-column: span 2; font-size: 0.8rem; background: var(--border); color: var(--dark);">KHR → USD</button>
+  </div>
+  <div id="calcRateNote" style="text-align: center; font-size: 0.65rem; color: var(--muted); padding: 0.5rem; font-style: italic; background: var(--white); font-family: 'DM Sans', 'Battambang', sans-serif;">
+  </div>
+</div>
+
+<div class="modal-overlay" id="genericModal" style="z-index: 10001;">
+  <div class="modal" style="width: 560px; max-width: 95vw; text-align: center;">
+    <div class="modal-title" id="genericModalTitle"></div>
+    <div class="modal-sub" id="genericModalMessage" style="margin-top: 1rem; margin-bottom: 2rem;"></div>
+    <div class="modal-actions" id="genericModalActions" style="justify-content: center;"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="historyModalMain" onclick="if(event.target===this) closeHistoryModal()">
+  <div class="history-modal" style="display: flex; flex-direction: column;">
+    <div class="modal-title" style="margin-bottom: 1rem;">
+      <span><span class="lang-km">ប្រវត្តិឯកសារ</span> / <span class="lang-en">Document History</span></span>
+      <button class="close-btn" onclick="closeHistoryModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--muted);">&times;</button>
+    </div>
+    
+    <div class="search-bar" style="margin-bottom: 1.5rem; flex-shrink: 0;">
+      <input type="text" id="searchInput" placeholder="Search by Sender, Receiver, or Title..." oninput="renderHistory()">
+    </div>
+    
+    <div id="historyGrid" class="history-grid" style="overflow-y: auto; padding-right: 0.5rem;">
+      <!-- Cards will be rendered here -->
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="historyDetailModal" onclick="if(event.target===this) closeHistoryDetailModal()" style="z-index: 10000;">
+  <div class="modal" style="width: 600px; max-width: 90vw;">
+    <div class="modal-title">
+      <span><span class="lang-km">ព័ត៌មានលម្អិត</span> / <span class="lang-en">Details</span></span>
+      <button class="close-btn" onclick="closeHistoryDetailModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--muted);">&times;</button>
+    </div>
+    <div id="historyModalContent"></div>
+  </div>
+</div>
+
+<div id="printDoc">
+<div class="pd-wrap">
+
+  <div class="pd-header">
+    <img id="pdLogo"
+         class="pd-logo"
+         src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Lockton_Logo_32mm_Black_(1).png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original"
+         alt="Lockton IBS">
+    <span id="pdLogoFb" class="pd-logo-fb" style="display:none">LOCKTON IBS</span>
+    <div class="pd-company" id="pdCompanyPrint" style="white-space: nowrap; width: 100%; overflow: hidden; text-overflow: clip;"></div>
+    <div class="pd-badge"><span class="lang-km">ឯកសារបញ្ជាក់ការប្រគល់ឯកសារ</span><span class="lang-divider"> &nbsp;/&nbsp; </span><span class="lang-en">Proof of Document Delivery</span></div>
+    <div id="qrcode-container" style="position: absolute; top: 0mm; right: 0mm; width: 22mm; height: 22mm; border: 1.5pt solid var(--ink-bd); padding: 1mm; background: var(--paper); border-radius: 2mm;"></div>
+  </div>
+
+  <div class="pd-meta">
+    <!-- Row 1 -->
+    <div class="pd-meta-cell pd-meta-lbl">
+      <span class="lang-km">អ្នកផ្ញើ</span><span class="lang-divider"> / </span><span class="lang-en">Sender</span>
+    </div>
+    <div class="pd-meta-cell pd-meta-val" id="pd-sender">
+      &nbsp;
+    </div>
+    <div class="pd-meta-cell pd-meta-lbl">
+      <span class="lang-km">អ្នកទទួល</span><span class="lang-divider"> / </span><span class="lang-en">Receiver</span>
+    </div>
+    <div class="pd-meta-cell pd-meta-val" id="pd-receiver">
+      &nbsp;
+    </div>
+
+    <!-- Row 2 -->
+    <div class="pd-meta-cell pd-meta-lbl">
+      <span class="lang-km">កាលបរិច្ឆេទ</span><span class="lang-divider"> / </span><span class="lang-en">Date Sent</span>
+    </div>
+    <div class="pd-meta-cell pd-meta-val" id="pd-date">
+      &nbsp;
+    </div>
+    <div class="pd-meta-cell pd-meta-lbl">
+      <span class="lang-km">ទីតាំង</span><span class="lang-divider"> / </span><span class="lang-en">Delivery Location</span>
+    </div>
+    <div class="pd-meta-cell pd-meta-val" id="pd-location">
+      &nbsp;
+    </div>
+
+    <!-- Row 3 -->
+    <div class="pd-meta-cell pd-meta-lbl">
+      &nbsp;
+    </div>
+    <div class="pd-meta-cell pd-meta-val">
+      &nbsp;
+    </div>
+    <div class="pd-meta-cell pd-meta-lbl">
+      <span class="lang-km">លេខទូរស័ព្ទ</span><span class="lang-divider"> / </span><span class="lang-en">Contact</span>
+    </div>
+    <div class="pd-meta-cell pd-meta-val" id="pd-contact" style="font-family: 'DM Sans', sans-serif; font-weight: bold;">
+      &nbsp;
+    </div>
+  </div>
+
+  <div class="pd-subject">
+    <div class="pd-subk"><span class="lang-km">ប្រធានបទ</span><span class="lang-divider"> / </span><span class="lang-en">Subject</span></div>
+    <div class="pd-subv" id="pd-title">&nbsp;</div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:6%; white-space:nowrap;"><span class="lang-km">លរ</span><span class="lang-divider"> / </span><span class="lang-en">No</span></th>
+        <th style="width:32%"><span class="lang-km">ឈ្មោះវត្ថុ</span><span class="lang-divider"> / </span><span class="lang-en">Item</span></th>
+        <th id="pd-th-id" class="col-id" style="width:8%"><span class="lang-km">លេខសម្គាល់</span><span class="lang-divider"> / </span><span class="lang-en">ID</span></th>
+        <th class="c" style="width:4%; white-space:nowrap;"><span class="lang-km">បរិមាណ</span><span class="lang-divider"> / </span><span class="lang-en">Qty</span></th>
+        <th style="width:50%"><span class="lang-km">កំណត់ចំណាំ</span><span class="lang-divider"> / </span><span class="lang-en">Remark</span></th>
+      </tr>
+    </thead>
+    <tbody id="pd-tbody"></tbody>
+    <tfoot>
+      <tr>
+        <td id="pd-total-label" colspan="3" style="text-align:right;letter-spacing:.06em;text-transform:uppercase;font-size:7.5pt">
+          <span class="lang-km">សរុបឯកសារ</span><span class="lang-divider"> / </span><span class="lang-en">Total Documents</span>
+        </td>
+        <td class="total-num" id="pd-total">0</td>
+        <td></td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <div class="pd-sig">
+    <div class="pd-sig-hd">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+        <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+      </svg>
+      <div class="pd-sig-hd-txt">
+        <span class="pd-sig-km lang-km">ត្រូវបំពេញដោយអ្នកទទួល</span>
+        <span class="pd-sig-en lang-en">To be completed by Receiver &mdash; Required</span>
+      </div>
+    </div>
+
+    <div class="pd-sig-body">
+      <div class="pd-sig-grid">
+
+        <div class="pd-sig-col">
+          <div class="pd-sig-lbl"><span class="lang-km">ឈ្មោះពេញ</span><span class="lang-divider"> / </span><span class="lang-en">Full Name</span></div>
+          <div class="pd-line"></div>
+        </div>
+
+        <div class="pd-sig-col">
+          <div class="pd-sig-lbl"><span class="lang-km">កាលបរិច្ឆេទទទួល</span><span class="lang-divider"> / </span><span class="lang-en">Date Received</span></div>
+          <div class="pd-date-row">
+            <div class="pd-date-cell">
+              <div class="pd-date-ln"></div>
+              <div class="pd-date-hint"><span class="lang-km">ថ្ងៃ</span><span class="lang-divider"> / </span><span class="lang-en">DD</span></div>
+            </div>
+            <div class="pd-date-sep">/</div>
+            <div class="pd-date-cell">
+              <div class="pd-date-ln"></div>
+              <div class="pd-date-hint"><span class="lang-km">ខែ</span><span class="lang-divider"> / </span><span class="lang-en">MM</span></div>
+            </div>
+            <div class="pd-date-sep">/</div>
+            <div class="pd-date-cell wide">
+              <div class="pd-date-ln"></div>
+              <div class="pd-date-hint"><span class="lang-km">ឆ្នាំ</span><span class="lang-divider"> / </span><span class="lang-en">YYYY</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pd-sig-col">
+          <div class="pd-sig-lbl"><span class="lang-km">ហត្ថលេខា</span><span class="lang-divider"> / </span><span class="lang-en">Signature</span></div>
+          <div class="pd-sig-box">
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="pd-footer-msg" style="margin-top: 2.5mm; margin-bottom: 0.5mm; display: flex; justify-content: space-between; align-items: flex-end; font-size: 8pt; color: var(--ink-m); font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', 'DM Sans', sans-serif;">
+    <div class="pd-msg-text" id="pd-msg-text" style="flex: 1; padding-right: 4mm;">
+      <div class="lang-km" style="margin-bottom: 0.5mm; font-weight: normal; line-height: 1.3;">ដោយចុះហត្ថលេខាខាងលើ លោកអ្នកទទួលស្គាល់ថាបានទទួលឯកសារច្បាប់ដើម ដែលត្រូវគ្នានឹងច្បាប់ចម្លងដែលបានភ្ជាប់នៅខាងក្រោយទម្រង់នេះ។</div>
+      <div class="lang-en" style="font-style: italic; font-weight: normal; line-height: 1.3;">By signing this, you acknowledge receiving the original documents that match the copy attached behind this form</div>
+    </div>
+    <div class="pd-msg-pages" id="pd-pages-container" style="flex-shrink: 0; text-align: right; font-weight: bold; display: none;">
+      <span class="lang-km">ទំព័រសរុប: </span><span class="lang-en">Total Pages: </span><span id="pd-pages-val">0</span>
+    </div>
+  </div>
+
+  <div class="pd-footer">
+    <div class="pd-footer-l"></div>
+    <div class="pd-footer-r" id="pd-ref"></div>
+  </div>
+
+  </div>
+</div>
+</div><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script>
+/* ── logos ── */
+document.getElementById('formLogo').onerror = function(){ this.style.display='none'; };
+document.getElementById('pdLogo').onerror = function(){
+  this.style.display='none';
+  document.getElementById('pdLogoFb').style.display='block';
+};
+
+/* ── paper ink maps ── */
+const INK = {
+  white:  { p:'#0D0D1A', s:'#3A3A5C', m:'#6B6B8A', bd:'#C4C4D8', stripe:'rgba(0,0,0,0.032)', th:'#1C1C2E', tht:'#FFFFFF', acc:'#C8102E', sig:'rgba(0,0,0,0.022)', paper:'#FFFFFF' },
+  yellow: { p:'#1A1100', s:'#3D2C00', m:'#7A6200', bd:'#C8B840', stripe:'rgba(0,0,0,0.04)',   th:'#2C2000', tht:'#FFFFFF', acc:'#A05800', sig:'rgba(0,0,0,0.04)',   paper:'#FFFDE7' },
+  green:  { p:'#081A0C', s:'#1A3820', m:'#4A7850', bd:'#88C290', stripe:'rgba(0,0,0,0.03)',   th:'#1A3820', tht:'#FFFFFF', acc:'#2E7D32', sig:'rgba(0,0,0,0.04)',   paper:'#F1F8E9' },
+  blue:   { p:'#08101E', s:'#182848', m:'#486078', bd:'#88B4D0', stripe:'rgba(0,0,0,0.04)',   th:'#182848', tht:'#FFFFFF', acc:'#1558B0', sig:'rgba(0,0,0,0.04)',   paper:'#E3F2FD' },
+};
+
+function applyInk(colour) {
+  const k = INK[colour] || INK.white;
+  const r = document.documentElement.style;
+  r.setProperty('--ink-p',      k.p);
+  r.setProperty('--ink-s',      k.s);
+  r.setProperty('--ink-m',      k.m);
+  r.setProperty('--ink-bd',     k.bd);
+  r.setProperty('--ink-stripe', k.stripe);
+  r.setProperty('--ink-th',     k.th);
+  r.setProperty('--ink-th-t',   k.tht);
+  r.setProperty('--ink-acc',    k.acc);
+  r.setProperty('--ink-sig',    k.sig);
+  r.setProperty('--paper',      k.paper);
+}
+
+/* ── modal ── */
+function openModal() { document.getElementById('paperModal').classList.add('open'); }
+function closeModal() { document.getElementById('paperModal').classList.remove('open'); }
+
+document.getElementById('paperModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+function customAlert(msg) {
+  const m = document.getElementById('genericModal');
+  document.getElementById('genericModalTitle').innerHTML = '<span class="lang-km">ជូនដំណឹង</span><span class="lang-divider"> / </span><span class="lang-en">Notice</span>';
+  document.getElementById('genericModalMessage').innerHTML = `<span style="color: #000000; white-space: pre-wrap; font-weight: 500;">${msg}</span>`;
+  document.getElementById('genericModalActions').innerHTML = `
+    <button class="btn-confirm" onclick="document.getElementById('genericModal').classList.remove('open')" style="width: 100%;">OK</button>
+  `;
+  m.classList.add('open');
+}
+
+function customConfirm(msg, onConfirm) {
+  const m = document.getElementById('genericModal');
+  document.getElementById('genericModalTitle').innerHTML = '<span class="lang-km">បញ្ជាក់</span><span class="lang-divider"> / </span><span class="lang-en">Confirm</span>';
+  document.getElementById('genericModalMessage').innerHTML = `<span style="color: #000000; white-space: pre-wrap; font-weight: 500;">${msg}</span>`;
+  document.getElementById('genericModalActions').innerHTML = `
+    <button class="btn-cancel" onclick="document.getElementById('genericModal').classList.remove('open')" style="flex:1"><span class="lang-km">បោះបង់</span><span class="lang-divider"> / </span><span class="lang-en">Cancel</span></button>
+    <button class="btn-confirm" id="genericConfirmBtn" style="flex:1"><span class="lang-km">យល់ព្រម</span><span class="lang-divider"> / </span><span class="lang-en">Confirm</span></button>
+  `;
+  document.getElementById('genericConfirmBtn').onclick = () => {
+    m.classList.remove('open');
+    onConfirm();
+  };
+  m.classList.add('open');
+}
+
+document.getElementById('genericModal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+});
+
+function saveDocumentHistory() {
+  const stateStr = localStorage.getItem('pod_form_state');
+  if (stateStr) {
+    try {
+      const state = JSON.parse(stateStr);
+      let history = JSON.parse(localStorage.getItem('pod_document_history') || '[]');
+      
+      if (history.length > 0) {
+        const last = history[0];
+        const keys = ['senderName', 'receiverName', 'receiverContact', 'deliveryLoc', 'deliveryTitle', 'sendDate'];
+        let isDuplicate = true;
+        
+        for (let k of keys) {
+          if (state[k] !== last[k]) { isDuplicate = false; break; }
+        }
+        
+        if (isDuplicate) {
+          const itemsA = state.itemData || [];
+          const itemsB = last.itemData || [];
+          if (itemsA.length !== itemsB.length) {
+            isDuplicate = false;
+          } else {
+            for (let i = 0; i < itemsA.length; i++) {
+              if (itemsA[i].name !== itemsB[i].name || itemsA[i].id !== itemsB[i].id || 
+                  itemsA[i].qty !== itemsB[i].qty || itemsA[i].pages !== itemsB[i].pages || 
+                  itemsA[i].remark !== itemsB[i].remark) {
+                isDuplicate = false;
+                break;
+              }
+            }
+          }
+        }
+        
+        if (isDuplicate) {
+          console.log("Duplicate document detected. Skipping save.");
+          return;
+        }
+      }
+      
+      state.timestamp = new Date().toISOString();
+      state.id = Date.now().toString(36) + Math.random().toString(36).substr(2);
+      history.unshift(state);
+      localStorage.setItem('pod_document_history', JSON.stringify(history));
+      
+      // Generate QR Code for the generated ID
+      const qrContainer = document.getElementById('qrcode-container');
+      qrContainer.innerHTML = ''; // clear previous
+      new QRCode(qrContainer, {
+        text: state.id,
+        width: 70,
+        height: 70,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.L
+      });
+    } catch(e) { console.error("Error saving document history", e); }
+  }
+}
+
+function selectColorAndPrint(colorVal) {
+  const rad = document.querySelector(`input[name="mPaper"][value="${colorVal}"]`);
+  if (rad) rad.checked = true;
+  
+  applyInk(colorVal);
+  closeModal();
+  if (window.syncTimer) clearTimeout(window.syncTimer);
+  if (typeof doSync === 'function') doSync();
+  
+  if (typeof forceSaveAutocomplete === 'function') forceSaveAutocomplete();
+  
+  saveDocumentHistory();
+  
+  setTimeout(() => { if (typeof syncToCloud === 'function') syncToCloud(); }, 500);
+  setTimeout(() => {
+    autoScale();
+    window.print();
+  }, 80);
+}
+
+/* Auto-scale: fit content perfectly into A4 */
+function autoScale() {
+  const doc  = document.getElementById('printDoc');
+  const wrap = doc.querySelector('.pd-wrap');
+  if (!wrap) return;
+
+  const prev = doc.getAttribute('style') || '';
+  // measure at printable width (210mm - 8mm*2 margins)
+  doc.setAttribute('style', 'display:block!important;position:absolute;top:-99999px;left:-99999px;width:194mm;visibility:hidden;');
+  wrap.style.transform  = '';
+  wrap.style.width      = '';
+  wrap.style.marginLeft = '';
+
+  const MM = 3.7795275591;
+  // @page margins: 6mm top+bottom, 8mm left+right
+  const printH_px = (297 - 6 - 6) * MM;
+  const printW_px = (210 - 8 - 8) * MM;
+
+  const contentH = wrap.scrollHeight;
+  const contentW = wrap.scrollWidth;
+
+  doc.setAttribute('style', prev);
+
+  if (!contentH || !contentW) return;
+
+  const scaleH = printH_px / contentH;
+  const scaleW = printW_px / contentW;
+  const scale  = Math.min(scaleH, scaleW, 2.5);
+
+  if (Math.abs(scale - 1) < 0.015) return;
+
+  wrap.style.transform       = `scale(${scale})`;
+  wrap.style.transformOrigin = 'top left';
+  wrap.style.width           = (100 / scale) + '%';
+}
+
+/* ── Autocomplete History ── */
+const HISTORY_MAP = {
+  'senderName': 'dl-sender', 'receiverName': 'dl-recv', 'receiverContact': 'dl-contact', 'deliveryLoc': 'dl-loc', 'deliveryTitle': 'dl-title', 'totalPages': 'dl-pages',
+  'f-name': 'dl-item-name', 'f-id': 'dl-item-id', 'f-rem': 'dl-item-rem'
+};
+
+function initAutocomplete() {
+  Object.values(HISTORY_MAP).forEach(dlId => {
+    if (!document.getElementById(dlId)) {
+      let dl = document.createElement('datalist');
+      dl.id = dlId;
+      document.body.appendChild(dl);
+    }
+    let dl = document.getElementById(dlId);
+    let history = JSON.parse(localStorage.getItem(dlId) || '[]');
+    dl.innerHTML = history.map(v => `<option value="${v.replace(/"/g, '&quot;')}">`).join('');
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadState();
+});
+
+// Settings Modal specific functions
+function openSettingsModal() {
+  document.getElementById('settingsModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSettingsModal() {
+  document.getElementById('settingsModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('change', e => {
+  let key = HISTORY_MAP[e.target.id];
+  if (!key) {
+    let cls = Array.from(e.target.classList).find(c => HISTORY_MAP[c]);
+    key = HISTORY_MAP[cls];
+  }
+  if (key && e.target.value.trim()) {
+    let val = e.target.value.trim();
+    let history = JSON.parse(localStorage.getItem(key) || '[]');
+    if (!history.includes(val)) {
+      history.unshift(val);
+      if (history.length > 25) history.pop();
+      localStorage.setItem(key, JSON.stringify(history));
+      document.getElementById(key).innerHTML = history.map(v => `<option value="${v.replace(/"/g, '&quot;')}">`).join('');
+    }
+  }
+});
+
+function bindAutocomplete() {
+  Object.keys(HISTORY_MAP).forEach(k => {
+    let el = document.getElementById(k);
+    if (el) el.setAttribute('list', HISTORY_MAP[k]);
+    document.querySelectorAll('.' + k).forEach(node => node.setAttribute('list', HISTORY_MAP[k]));
+  });
+}
+
+/* ── row management ── */
+let rowCount = 1;
+let maxRows  = 8; // locked to 8 as per request
+const itemData = [];
+
+function ensureData(n) {
+  while (itemData.length < n) itemData.push({name:'', id:'', qty:1, pages:'', remark:''});
+}
+
+function setRows(n) {
+  rowCount = n;
+  ensureData(n);
+  renderBtns();
+  renderFormRows();
+  sync();
+}
+
+function renderBtns() {
+  const c = document.getElementById('rowBtns');
+  c.innerHTML = '';
+  for (let x = 1; x <= maxRows; x++) {
+    const b = document.createElement('button');
+    b.className = 'btn-row' + (x === rowCount ? ' active' : '');
+    b.textContent = x;
+    b.onclick = () => setRows(x);
+    c.appendChild(b);
+  }
+  const hint = document.getElementById('maxRowsHint');
+  hint.textContent = `(max ${maxRows})`;
+}
+
+/* Lock max rows to 8 as requested */
+function calcMaxRows() {
+  maxRows = 8;
+  if (rowCount > maxRows) rowCount = maxRows;
+  ensureData(rowCount);
+  renderBtns();
+  renderFormRows();
+  sync();
+}
+
+function renderFormRows() {
+  ensureData(rowCount);
+  const c = document.getElementById('itemRows');
+  c.innerHTML = '';
+  
+  const lang = document.getElementById('langSelect')?.value || 'bilingual';
+  let namePl = 'ឈ្មោះ / Item';
+  let idPl = 'ID / Ref';
+  let remarkPl = 'កំណត់ចំណាំ / Remark';
+  
+  if (lang === 'km') {
+    namePl = 'ឈ្មោះវត្ថុ';
+    idPl = 'លេខសម្គាល់';
+    remarkPl = 'កំណត់ចំណាំ';
+  } else if (lang === 'en') {
+    namePl = 'Item Name';
+    idPl = 'ID / Ref';
+    remarkPl = 'Remark';
+  }
+
+  for (let i = 0; i < rowCount; i++) {
+    const d = itemData[i];
+    const r = document.createElement('div');
+    r.className = 'item-row';
+    r.innerHTML = `
+      <input type="text"   class="f-name" placeholder="${namePl}"       value="${esc(d.name)}"   oninput="cap(${i}, 'name', this.value)">
+      <input type="text"   class="f-id"   placeholder="${idPl}"         value="${esc(d.id)}"     oninput="cap(${i}, 'id', this.value)">
+      <input type="number" class="qty-inp" min="1"                     value="${d.qty}"         oninput="capQty(${i},this)">
+      <input type="number" class="pages-inp" min="0" placeholder="ទំព័រ / Pages" value="${d.pages !== undefined ? d.pages : ''}" oninput="capPages(${i},this)">
+      <textarea            class="f-rem"  placeholder="${remarkPl}"     oninput="cap(${i}, 'remark', this.value)">${esc(d.remark)}</textarea>
+    `;
+    c.appendChild(r);
+  }
+  bindAutocomplete();
+}
+
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+}
+
+function cap(i, field, val) {
+  if (itemData[i]) {
+    itemData[i][field] = val;
+    sync();
+  }
+}
+
+function capQty(i, el) {
+  let v = parseInt(el.value);
+  if (isNaN(v) || v < 1) { v = 1; el.value = 1; }
+  itemData[i].qty = v;
+  sync();
+}
+
+function capPages(i, el) {
+  let v = el.value.trim();
+  if (v === '') {
+    itemData[i].pages = '';
+  } else {
+    let num = parseInt(v);
+    if (isNaN(num) || num < 0) num = 0;
+    itemData[i].pages = num;
+  }
+  
+  // Auto-calculate the total pages
+  let total = 0;
+  let enteredAny = false;
+  for (let idx = 0; idx < rowCount; idx++) {
+    const val = itemData[idx].pages;
+    if (val !== undefined && val !== '') {
+      total += parseInt(val) || 0;
+      enteredAny = true;
+    }
+  }
+  
+  if (enteredAny) {
+    document.getElementById('totalPages').value = total;
+  } else {
+    document.getElementById('totalPages').value = '';
+  }
+
+  sync();
+}
+
+/* ── date ── */
+const INTL_M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtDate(v) {
+  if (!v) return '';
+  const [y,m,d] = v.split('-');
+  return `${String(parseInt(d)).padStart(2,'0')}-${INTL_M[parseInt(m)-1]}-${y}`;
+}
+
+/* ── sync form → print doc ── */
+function setF(id, val) {
+  document.getElementById(id).innerHTML = val ? val : '&nbsp;';
+}
+
+let syncTimer = null;
+function sync() {
+  if (syncTimer) clearTimeout(syncTimer);
+  syncTimer = setTimeout(doSync, 200); // Increased debounce to prevent input lag
+}
+
+function doSync() {
+  const shrinkName = (val) => {
+    if (!val) return '&nbsp;';
+    const len = val.length;
+    let sz = '';
+    if (len > 28) sz = 'font-size: 7.5pt;';
+    else if (len > 20) sz = 'font-size: 8.5pt;';
+    else if (len > 14) sz = 'font-size: 9.5pt;';
+    return `<span style="${sz} white-space: nowrap;">${esc(val)}</span>`;
+  };
+
+  setF('pd-sender',   shrinkName(document.getElementById('senderName').value.trim()));
+  setF('pd-date',     fmtDate(document.getElementById('sendDate').value));
+  setF('pd-receiver', shrinkName(document.getElementById('receiverName').value.trim()));
+  const contactVal = document.getElementById('receiverContact').value.trim();
+  setF('pd-contact',  contactVal ? `<span style="white-space: nowrap;">${esc(contactVal)}</span>` : '');
+  setF('pd-location', shrinkName(document.getElementById('deliveryLoc').value.trim()));
+  setF('pd-title',    esc(document.getElementById('deliveryTitle').value.trim()));
+
+  const compInput = document.getElementById('companyNameInput');
+  const compPrint = document.getElementById('pdCompanyPrint');
+  if (compInput && compPrint) {
+    const val = compInput.value.trim();
+    compPrint.textContent = val;
+    if (val) {
+      compPrint.style.display = 'block';
+      if (compPrint.dataset.lastVal !== val) {
+        compPrint.dataset.lastVal = val;
+        if (!window._measuringCanvas) {
+          window._measuringCanvas = document.createElement("canvas");
+          window._measuringCtx = window._measuringCanvas.getContext("2d");
+        }
+        const ctx = window._measuringCtx;
+        let pt = 17;
+        const maxW = 710;
+        while (pt > 6) {
+          ctx.font = `bold ${pt}pt "Cormorant Garamond", serif`;
+          if (ctx.measureText(val).width <= maxW) break;
+          pt -= 0.5;
+        }
+        compPrint.style.fontSize = pt + 'pt';
+        compPrint.dataset.lastFontSize = pt + 'pt';
+      } else {
+        compPrint.style.fontSize = compPrint.dataset.lastFontSize;
+      }
+    } else {
+      compPrint.style.display = 'none';
+    }
+  }
+
+  const showId = document.getElementById('showIdColumn')?.checked !== false;
+  
+  // Toggle ID column in print header & footer colspan
+  const thId = document.getElementById('pd-th-id');
+  if (thId) thId.style.display = showId ? '' : 'none';
+  
+  const tdTotalLabel = document.getElementById('pd-total-label');
+  if (tdTotalLabel) tdTotalLabel.setAttribute('colspan', showId ? '3' : '2');
+
+  ensureData(rowCount);
+  const tbody = document.getElementById('pd-tbody');
+  tbody.innerHTML = '';
+
+  const lang = document.getElementById('langSelect')?.value || 'bilingual';
+  let noRemarkText = 'គ្មានកំណត់ចំណាំ';
+  if (lang === 'en') {
+    noRemarkText = 'No Remark';
+  } else if (lang === 'bilingual') {
+    noRemarkText = 'គ្មានកំណត់ចំណាំ / No Remark';
+  }
+
+  let totalQty = 0;
+  let totalPagesVal = 0;
+  let enteredAnyPages = false;
+
+  for (let i = 0; i < rowCount; i++) {
+    const d = itemData[i];
+    const tr = document.createElement('tr');
+    const id  = d.id     ? esc(d.id)     : '&nbsp;';
+    const rem = d.remark
+      ? `<span style="font-style:italic; white-space: pre-wrap; display: block; text-align: left; font-size: 8.5pt; line-height: 1.25;">${esc(d.remark)}</span>`
+      : `<span style="color:var(--ink-bd);font-style:italic;font-family:'Battambang', 'Khmer OS Battambang', 'Hanuman', 'DM Sans',sans-serif;font-size:7pt">${noRemarkText}</span>`;
+    
+    let nmHtml = '&nbsp;';
+    if (d.name) {
+      const len = d.name.length;
+      let styleAttr = '';
+      if (len > 50) {
+        styleAttr = ' style="font-size: 8.5pt; line-height: 1.25; display: inline-block; width: 100%;"';
+      } else if (len > 25) {
+        styleAttr = ' style="font-size: 9.5pt; line-height: 1.35; display: inline-block; width: 100%;"';
+      }
+      nmHtml = `<span${styleAttr}>${esc(d.name)}</span>`;
+    }
+
+    let nameColHtml = nmHtml;
+    if (d.pages !== undefined && d.pages !== '') {
+      nameColHtml += `
+        <div style="font-size: 7.5pt; color: var(--ink-m); font-weight: normal; margin-top: 0.5mm; font-family: 'DM Sans', sans-serif;">
+          ${d.pages} page${parseInt(d.pages) !== 1 ? 's' : ''}
+        </div>
+      `;
+    }
+
+    let trHtml = `<td class="num">${i+1}</td><td>${nameColHtml}</td>`;
+    if (showId) {
+      trHtml += `<td>${id}</td>`;
+    }
+    trHtml += `<td class="c">${d.qty}</td><td>${rem}</td>`;
+    tr.innerHTML = trHtml;
+    tbody.appendChild(tr);
+    
+    totalQty += d.qty;
+    if (d.pages !== undefined && d.pages !== '') {
+      totalPagesVal += parseInt(d.pages) || 0;
+      enteredAnyPages = true;
+    }
+  }
+
+  // Update total pages field in form if they've entered row-level pages
+  if (enteredAnyPages) {
+    document.getElementById('totalPages').value = totalPagesVal;
+  }
+
+  document.getElementById('pd-total').textContent = totalQty;
+
+  // Sync Total Pages field to print footer note
+  const pagesVal = document.getElementById('totalPages').value.trim();
+  const pagesContainer = document.getElementById('pd-pages-container');
+  if (pagesVal) {
+    document.getElementById('pd-pages-val').textContent = pagesVal;
+    pagesContainer.style.display = 'block';
+  } else {
+    pagesContainer.style.display = 'none';
+  }
+
+  // Save the form state to browser memory
+  saveState();
+}
+
+function toggleIdColumn() {
+  const showId = document.getElementById('showIdColumn')?.checked !== false;
+  if (showId) {
+    document.body.classList.remove('hide-id-col');
+  } else {
+    document.body.classList.add('hide-id-col');
+  }
+  if (isLoaded) {
+    sync();
+  }
+}
+
+function toggleFooterMsg() {
+  const showMsg = document.getElementById('showFooterMsg')?.checked !== false;
+  const msgEl = document.getElementById('pd-msg-text');
+  if (msgEl) {
+    msgEl.style.visibility = showMsg ? 'visible' : 'hidden';
+  }
+  const previewEl = document.getElementById('footerMsgPreview');
+  if (previewEl) {
+    previewEl.style.display = showMsg ? 'block' : 'none';
+  }
+  if (isLoaded) {
+    saveState();
+  }
+}
+
+/* ── state management & custom logo ── */
+let isLoaded = false;
+const DEFAULT_FORM_LOGO = "https://upload.wikimedia.org/wikipedia/commons/f/f2/Lockton_Logo_32mm_Black_(1).png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original";
+const DEFAULT_PD_LOGO = "https://upload.wikimedia.org/wikipedia/commons/f/f2/Lockton_Logo_32mm_Black_(1).png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original";
+
+function changeLanguage() {
+  const select = document.getElementById('langSelect');
+  if (!select) return;
+  const lang = select.value || 'bilingual';
+  
+  document.body.classList.remove('lang-km', 'lang-en', 'lang-bilingual');
+  if (lang === 'km') {
+    document.body.classList.add('lang-km');
+  } else if (lang === 'en') {
+    document.body.classList.add('lang-en');
+  } else {
+    document.body.classList.add('lang-bilingual');
+  }
+  
+  if (typeof renderFormRows === 'function') {
+    renderFormRows();
+  }
+  
+  if (isLoaded) {
+    sync();
+  }
+}
+
+function updateCalcRateNote() {
+  const usdToKhr = document.getElementById('rateUsdToKhr')?.value || 4100;
+  const khrToUsd = document.getElementById('rateKhrToUsd')?.value || 4000;
+  const noteEl = document.getElementById('calcRateNote');
+  if (noteEl) {
+    noteEl.innerHTML = `<span class="lang-km">$1 = ${usdToKhr}៛ (ទទួល ${khrToUsd}៛)</span><span class="lang-divider"> / </span><span class="lang-en">$1 = ${usdToKhr} KHR (Recv ${khrToUsd})</span>`;
+  }
+}
+
+function saveState() {
+  if (!isLoaded) return;
+  const state = {
+    companyName: document.getElementById('companyNameInput')?.value || '',
+    senderName: document.getElementById('senderName').value,
+    sendDate: document.getElementById('sendDate').value,
+    receiverName: document.getElementById('receiverName').value,
+    receiverContact: document.getElementById('receiverContact').value,
+    deliveryLoc: document.getElementById('deliveryLoc').value,
+    deliveryTitle: document.getElementById('deliveryTitle').value,
+    totalPages: document.getElementById('totalPages').value,
+    paperColour: document.querySelector('input[name="mPaper"]:checked')?.value || 'white',
+    rowCount: rowCount,
+    itemData: itemData.slice(0, rowCount),
+    showId: document.getElementById('showIdColumn')?.checked !== false,
+    showFooterMsg: document.getElementById('showFooterMsg')?.checked !== false,
+    lang: document.getElementById('langSelect')?.value || 'bilingual',
+    rateUsdToKhr: document.getElementById('rateUsdToKhr')?.value || 4100,
+    rateKhrToUsd: document.getElementById('rateKhrToUsd')?.value || 4000
+  };
+  localStorage.setItem('pod_form_state', JSON.stringify(state));
+  updateCalcRateNote();
+}
+
+function loadState() {
+  // 1. Load Custom Logo
+  const savedLogo = localStorage.getItem('pod_custom_logo');
+  if (savedLogo) {
+    applyLogo(savedLogo);
+    const logoUrlInput = document.getElementById('logoUrlInput');
+    if (logoUrlInput && savedLogo.startsWith('http')) {
+      logoUrlInput.value = savedLogo;
+    } else if (logoUrlInput) {
+      logoUrlInput.value = '';
+    }
+  } else {
+    resetLogoDOM();
+  }
+
+  // 2. Load Form State
+  const savedStateStr = localStorage.getItem('pod_form_state');
+  if (savedStateStr) {
+    try {
+      const state = JSON.parse(savedStateStr);
+      if (state.companyName !== undefined) {
+        const cni = document.getElementById('companyNameInput');
+        if (cni) cni.value = state.companyName;
+      }
+      if (state.senderName !== undefined) document.getElementById('senderName').value = state.senderName;
+      if (state.receiverName !== undefined) document.getElementById('receiverName').value = state.receiverName;
+      if (state.receiverContact !== undefined) document.getElementById('receiverContact').value = state.receiverContact;
+      if (state.deliveryLoc !== undefined) document.getElementById('deliveryLoc').value = state.deliveryLoc;
+      if (state.deliveryTitle !== undefined) document.getElementById('deliveryTitle').value = state.deliveryTitle;
+      if (state.totalPages !== undefined) document.getElementById('totalPages').value = state.totalPages;
+      
+      if (state.paperColour !== undefined) {
+        const rad = document.querySelector(`input[name="mPaper"][value="${state.paperColour}"]`);
+        if (rad) {
+          rad.checked = true;
+          applyInk(state.paperColour);
+        }
+      }
+      
+      if (state.rowCount !== undefined) {
+        rowCount = state.rowCount;
+      }
+      
+      if (state.showId !== undefined) {
+        const chk = document.getElementById('showIdColumn');
+        if (chk) chk.checked = state.showId;
+      }
+      toggleIdColumn();
+
+      if (state.showFooterMsg !== undefined) {
+        const msgChk = document.getElementById('showFooterMsg');
+        if (msgChk) msgChk.checked = state.showFooterMsg;
+      }
+      toggleFooterMsg();
+
+      if (state.lang !== undefined) {
+        const select = document.getElementById('langSelect');
+        if (select) select.value = state.lang;
+      }
+      changeLanguage();
+      
+      if (state.rateUsdToKhr !== undefined) {
+        const r1 = document.getElementById('rateUsdToKhr');
+        if (r1) r1.value = state.rateUsdToKhr;
+      }
+      if (state.rateKhrToUsd !== undefined) {
+        const r2 = document.getElementById('rateKhrToUsd');
+        if (r2) r2.value = state.rateKhrToUsd;
+      }
+      
+      const dot = document.getElementById('syncStatusDot');
+      const txt = document.getElementById('syncStatusText');
+      if (dot) dot.className = 'status-dot green';
+      if (txt) txt.innerHTML = '<span class="lang-en">Ready</span>';
+
+      if (state.itemData !== undefined && Array.isArray(state.itemData)) {
+        itemData.length = 0;
+        state.itemData.forEach(item => itemData.push(item));
+        ensureData(rowCount);
+      }
+    } catch (e) {
+      console.error("Error parsing saved state:", e);
+    }
+  } else {
+    // If no state is saved, apply the default language classes
+    changeLanguage();
+    toggleIdColumn();
+    toggleFooterMsg();
+  }
+  updateCalcRateNote();
+}
+
+function handleLogoUpload(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    const dataUrl = event.target.result;
+    // SVGs or small files (< 150KB) saved directly to preserve quality
+    if (file.type === 'image/svg+xml' || file.size < 150 * 1024) {
+      saveLogo(dataUrl);
+    } else {
+      // Resize to limit localStorage quota issues
+      const img = new Image();
+      img.onload = function() {
+        const maxDim = 600;
+        let width = img.width;
+        let height = img.height;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        saveLogo(canvas.toDataURL('image/png'));
+      };
+      img.src = dataUrl;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function applyLogoFromUrl() {
+  const urlInput = document.getElementById('logoUrlInput');
+  const url = urlInput ? urlInput.value.trim() : '';
+  if (url) {
+    saveLogo(url);
+  }
+}
+
+function applyLogo(dataUrl) {
+  const formLogo = document.getElementById('formLogo');
+  const pdLogo = document.getElementById('pdLogo');
+  const pdLogoFb = document.getElementById('pdLogoFb');
+  const preview = document.getElementById('logoPreview');
+  const previewContainer = document.getElementById('logoPreviewContainer');
+  const uploadBox = document.querySelector('.upload-box');
+  
+  if (formLogo) {
+    formLogo.src = dataUrl;
+    formLogo.style.display = 'block';
+  }
+  if (pdLogo) {
+    pdLogo.src = dataUrl;
+    pdLogo.style.display = 'block';
+  }
+  if (pdLogoFb) pdLogoFb.style.display = 'none';
+  if (preview) preview.src = dataUrl;
+  if (previewContainer) previewContainer.style.display = 'flex';
+  if (uploadBox) uploadBox.style.borderStyle = 'solid';
+}
+
+function resetLogoDOM() {
+  const formLogo = document.getElementById('formLogo');
+  const pdLogo = document.getElementById('pdLogo');
+  const pdLogoFb = document.getElementById('pdLogoFb');
+  const preview = document.getElementById('logoPreview');
+  const previewContainer = document.getElementById('logoPreviewContainer');
+  const uploadBox = document.querySelector('.upload-box');
+  
+  if (formLogo) {
+    formLogo.src = DEFAULT_FORM_LOGO;
+    formLogo.style.display = 'block';
+  }
+  if (pdLogo) {
+    pdLogo.src = DEFAULT_PD_LOGO;
+    pdLogo.style.display = 'block';
+  }
+  if (pdLogoFb) pdLogoFb.style.display = 'none';
+  if (preview) preview.src = '';
+  if (previewContainer) previewContainer.style.display = 'none';
+  if (uploadBox) uploadBox.style.borderStyle = 'dashed';
+  
+  const logoInput = document.getElementById('logoInput');
+  if (logoInput) logoInput.value = '';
+
+  const logoUrlInput = document.getElementById('logoUrlInput');
+  if (logoUrlInput) logoUrlInput.value = DEFAULT_PD_LOGO;
+}
+
+function saveLogo(dataUrl) {
+  try {
+    localStorage.setItem('pod_custom_logo', dataUrl);
+    applyLogo(dataUrl);
+  } catch (e) {
+    console.error("Failed to save logo to localStorage", e);
+    customAlert("ឡូហ្គោនេះធំពេកមិនអាចរក្សាទុកបានទេ! សូមសាកល្បងរូបភាពផ្សេងដែលមានទំហំតូចជាង។ / Logo is too large to save! Please try a smaller image.");
+  }
+}
+
+function resetLogo() {
+  localStorage.removeItem('pod_custom_logo');
+  resetLogoDOM();
+}
+
+function setupDragAndDrop() {
+  const dropZone = document.getElementById('dropZone');
+  const logoInput = document.getElementById('logoInput');
+  
+  if (!dropZone || !logoInput) return;
+  
+  dropZone.addEventListener('click', (e) => {
+    if (e.target !== logoInput) {
+      logoInput.click();
+    }
+  });
+  
+  logoInput.addEventListener('change', (e) => {
+    if (e.target.files && e.target.files[0]) {
+      handleLogoUpload(e.target.files[0]);
+    }
+  });
+  
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropZone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZone.classList.add('dragover');
+    }, false);
+  });
+  
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZone.classList.remove('dragover');
+    }, false);
+  });
+  
+  dropZone.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    if (files && files[0]) {
+      handleLogoUpload(files[0]);
+    }
+  }, false);
+}
+
+function clearFormData() {
+  customConfirm("តើអ្នកពិតជាចង់សម្អាតទិន្នន័យដែលបានបំពេញមែនទេ? / Are you sure you want to clear all filled data?", () => {
+    document.getElementById('senderName').value = '';
+    document.getElementById('sendDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('receiverName').value = '';
+    document.getElementById('receiverContact').value = '';
+    document.getElementById('deliveryLoc').value = '';
+    document.getElementById('deliveryTitle').value = '';
+    document.getElementById('totalPages').value = '';
+    
+    rowCount = 1;
+    itemData.length = 0;
+    ensureData(1);
+    
+    renderBtns();
+    renderFormRows();
+    sync();
+  });
+}
+
+function clearItems() {
+  customConfirm("តើអ្នកពិតជាចង់សម្អាតបញ្ជីវត្ថុទាំងអស់មែនទេ? / Are you sure you want to clear all items?", () => {
+    itemData.length = 0;
+    ensureData(rowCount);
+    renderFormRows();
+    sync();
+  });
+}
+
+function clearSavedData() {
+  customConfirm("តើអ្នកពិតជាចង់សម្អាតទិន្នន័យទាំងអស់ និងកំណត់កម្មវិធីឡើងវិញមែនទេ? / Are you sure you want to clear all saved data and reset the form?", () => {
+    localStorage.removeItem('pod_form_state');
+    localStorage.removeItem('pod_custom_logo');
+    
+    resetLogoDOM();
+    
+    document.getElementById('senderName').value = '';
+    document.getElementById('sendDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('receiverName').value = '';
+    document.getElementById('receiverContact').value = '';
+    document.getElementById('deliveryLoc').value = '';
+    document.getElementById('deliveryTitle').value = '';
+    document.getElementById('totalPages').value = '';
+    
+    const firstRadio = document.querySelector('input[name="mPaper"][value="white"]');
+    if (firstRadio) firstRadio.checked = true;
+    applyInk('white');
+    
+    const langSelect = document.getElementById('langSelect');
+    if (langSelect) langSelect.value = 'bilingual';
+    changeLanguage();
+    
+    const idChk = document.getElementById('showIdColumn');
+    if (idChk) idChk.checked = false;
+    toggleIdColumn();
+    
+    const msgChk = document.getElementById('showFooterMsg');
+    if (msgChk) msgChk.checked = true;
+    toggleFooterMsg();
+    
+    rowCount = 1;
+    itemData.length = 0;
+    ensureData(1);
+    
+    renderBtns();
+    renderFormRows();
+    sync();
+    
+    customAlert("បានសម្អាតដោយជោគជ័យ! / Reset successful!");
+  });
+}
+
+/* ── mini calculator ── */
+function toggleCalc() {
+  const c = document.getElementById('miniCalc');
+  c.classList.toggle('hidden');
+  if (!c.classList.contains('hidden')) {
+    document.getElementById('calcInput').focus();
+    const h = document.getElementById('calcHistory');
+    h.scrollTop = h.scrollHeight;
+  }
+}
+let calcJustEvaluated = false;
+function handleCalcKeydown(e) {
+  if (e.key === 'Enter') {
+    calcEval();
+    return;
+  }
+  if (calcJustEvaluated) {
+    if (/^[0-9.]$/.test(e.key)) {
+      document.getElementById('calcInput').value = '';
+    }
+    if (!['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) {
+      calcJustEvaluated = false;
+    }
+  }
+}
+function adjustCalcFontSize() {
+  const inp = document.getElementById('calcInput');
+  const len = inp.value.length;
+  if (len < 12) inp.style.fontSize = '1.6rem';
+  else if (len < 16) inp.style.fontSize = '1.3rem';
+  else if (len < 22) inp.style.fontSize = '1.1rem';
+  else inp.style.fontSize = '0.9rem';
+}
+function handleCalcInput(e) {
+  const inp = e.target;
+  let val = inp.value;
+  val = val.replace(/\*/g, '×').replace(/\//g, '÷').replace(/-/g, '−');
+  if (val !== inp.value) {
+    const start = inp.selectionStart;
+    inp.value = val;
+    inp.setSelectionRange(start, start);
+  }
+  adjustCalcFontSize();
+}
+function calcKey(k) {
+  const inp = document.getElementById('calcInput');
+  if (inp.value === 'Error') inp.value = '';
+  
+  if (calcJustEvaluated) {
+    if (/[0-9.]/.test(k)) {
+      inp.value = '';
+    }
+    calcJustEvaluated = false;
+  }
+  
+  const ops = ['+', '−', '×', '÷'];
+  
+  if (inp.value === '') {
+    if (k === '.') {
+      inp.value = '0';
+    } else if (ops.includes(k) && k !== '−') {
+      return; 
+    }
+  } else {
+    const lastChar = inp.value.slice(-1);
+    if (ops.includes(lastChar) && ops.includes(k)) {
+      inp.value = inp.value.slice(0, -1);
+    }
+  }
+  
+  inp.value += k;
+  adjustCalcFontSize();
+  inp.focus();
+}
+function calcDel() {
+  const inp = document.getElementById('calcInput');
+  if (inp.value === 'Error') inp.value = '';
+  inp.value = inp.value.slice(0, -1);
+  adjustCalcFontSize();
+  inp.focus();
+}
+function calcClear() {
+  document.getElementById('calcInput').value = "";
+  adjustCalcFontSize();
+  document.getElementById('calcInput').focus();
+}
+function formatNumberStr(num) {
+  return Number(num).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+function calcEval() {
+  const inp = document.getElementById('calcInput');
+  if (!inp.value.trim() || inp.value === 'Error') return;
+  try {
+    let expr = inp.value.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+    expr = expr.replace(/[^-()\d/*+.]/g, ''); 
+    if (!expr) return;
+    const res = Function('"use strict";return (' + expr + ')')();
+    if (!isFinite(res)) throw new Error('Invalid');
+    let resStr = formatNumberStr(res);
+    addCalcHistory(inp.value + " = " + resStr);
+    inp.value = resStr;
+    calcJustEvaluated = true;
+  } catch(e) {
+    inp.value = "Error";
+    setTimeout(() => { if(inp.value === "Error") { inp.value = ""; adjustCalcFontSize(); } }, 1000);
+  }
+  adjustCalcFontSize();
+  inp.focus();
+}
+function addCalcHistory(str) {
+  const h = document.getElementById('calcHistory');
+  const div = document.createElement('div');
+  div.className = 'calc-history-item';
+  div.style.display = 'flex';
+  div.style.alignItems = 'center';
+  div.style.justifyContent = 'space-between';
+  const parts = str.split(' = ');
+  const resultToCopy = parts.length > 1 ? parts[1].replace(/ KHR| USD/g, '').replace(/,/g, '').trim() : str.replace(/,/g, '').trim();
+  div.innerHTML = `
+    <span style="flex: 1; text-align: right;">${str}</span>
+    <button onclick="navigator.clipboard.writeText('${resultToCopy}')" style="background:none; border:none; cursor:pointer; color:var(--mid); padding:2px; margin-left:8px; display:flex; align-items:center;" title="Copy Result">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+    </button>
+  `;
+  h.appendChild(div);
+  h.scrollTop = h.scrollHeight;
+  let hist = JSON.parse(localStorage.getItem('pod_calc_hist') || '[]');
+  hist.push(str);
+  if (hist.length > 50) hist.shift();
+  localStorage.setItem('pod_calc_hist', JSON.stringify(hist));
+}
+function executeConvToKHR() {
+  const inp = document.getElementById('calcInput');
+  const rate = parseFloat(document.getElementById('rateUsdToKhr').value) || 4100;
+  if (!inp.value.trim() || inp.value === 'Error') return;
+  try {
+    let expr = inp.value.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-').replace(/[^-()\d/*+.]/g, ''); 
+    const val = Function('"use strict";return (' + expr + ')')();
+    if (isNaN(val)) return;
+    const res = val * rate;
+    let resStr = formatNumberStr(res);
+    addCalcHistory(`${formatNumberStr(val)} USD × ${formatNumberStr(rate)} = ${resStr} KHR`);
+    inp.value = resStr + " KHR";
+    calcJustEvaluated = true;
+    adjustCalcFontSize();
+    inp.focus();
+  } catch(e) {}
+}
+
+function convToKHR() {
+  const inp = document.getElementById('calcInput');
+  if (inp.value.includes('KHR') || inp.value.includes('USD')) {
+    customConfirm('អ្នកបានប្តូរប្រាក់រួចម្តងហើយ តើអ្នកចង់ប្តូរប្រាក់ម្តងទៀតទេ? \n\nYou already converted once, do you want to convert again?', executeConvToKHR);
+    return;
+  }
+  executeConvToKHR();
+}
+
+function executeConvToUSD() {
+  const inp = document.getElementById('calcInput');
+  const rate = parseFloat(document.getElementById('rateKhrToUsd').value) || 4000;
+  if (!inp.value.trim() || inp.value === 'Error') return;
+  try {
+    let expr = inp.value.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-').replace(/[^-()\d/*+.]/g, ''); 
+    const val = Function('"use strict";return (' + expr + ')')();
+    if (isNaN(val)) return;
+    const res = val / rate;
+    let resStr = formatNumberStr(res);
+    addCalcHistory(`${formatNumberStr(val)} KHR ÷ ${formatNumberStr(rate)} = ${resStr} USD`);
+    inp.value = resStr + " USD";
+    calcJustEvaluated = true;
+    adjustCalcFontSize();
+    inp.focus();
+  } catch(e) {}
+}
+
+function convToUSD() {
+  const inp = document.getElementById('calcInput');
+  if (inp.value.includes('KHR') || inp.value.includes('USD')) {
+    customConfirm('អ្នកបានប្តូរប្រាក់រួចម្តងហើយ តើអ្នកចង់ប្តូរប្រាក់ម្តងទៀតទេ? \n\nYou already converted once, do you want to convert again?', executeConvToUSD);
+    return;
+  }
+  executeConvToUSD();
+}
+function loadCalcHistory() {
+  let hist = JSON.parse(localStorage.getItem('pod_calc_hist') || '[]');
+  const h = document.getElementById('calcHistory');
+  h.innerHTML = '';
+  hist.forEach(str => {
+    const div = document.createElement('div');
+    div.className = 'calc-history-item';
+    div.style.display = 'flex';
+    div.style.alignItems = 'center';
+    div.style.justifyContent = 'space-between';
+    const parts = str.split(' = ');
+    const resultToCopy = parts.length > 1 ? parts[1].replace(/ KHR| USD/g, '').replace(/,/g, '').trim() : str.replace(/,/g, '').trim();
+    div.innerHTML = `
+      <span style="flex: 1; text-align: right;">${str}</span>
+      <button onclick="navigator.clipboard.writeText('${resultToCopy}')" style="background:none; border:none; cursor:pointer; color:var(--mid); padding:2px; margin-left:8px; display:flex; align-items:center;" title="Copy Result">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+      </button>
+    `;
+    h.appendChild(div);
+  });
+  h.scrollTop = h.scrollHeight;
+}
+function calcClearHistory() {
+  localStorage.removeItem('pod_calc_hist');
+  loadCalcHistory();
+  document.getElementById('calcInput').focus();
+}
+
+function initCalcDrag() {
+  const calc = document.getElementById('miniCalc');
+  const header = calc.querySelector('.calc-header');
+  let isDraggingCalc = false;
+  let calcDragOffsetX = 0;
+  let calcDragOffsetY = 0;
+
+  function dragStart(e) {
+    if (e.target.tagName === 'BUTTON') return;
+    isDraggingCalc = true;
+    const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+    const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+    const rect = calc.getBoundingClientRect();
+    calcDragOffsetX = clientX - rect.left;
+    calcDragOffsetY = clientY - rect.top;
+    
+    calc.style.bottom = 'auto';
+    calc.style.right = 'auto';
+    calc.style.left = rect.left + 'px';
+    calc.style.top = rect.top + 'px';
+    calc.style.margin = '0';
+  }
+  
+  function dragMove(e) {
+    if (!isDraggingCalc) return;
+    e.preventDefault();
+    const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+    const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+    let x = clientX - calcDragOffsetX;
+    let y = clientY - calcDragOffsetY;
+    
+    const maxX = window.innerWidth - calc.offsetWidth;
+    const maxY = window.innerHeight - calc.offsetHeight;
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+    if (x > maxX) x = maxX;
+    if (y > maxY) y = maxY;
+    
+    calc.style.left = x + 'px';
+    calc.style.top = y + 'px';
+  }
+  
+  function dragEnd() {
+    isDraggingCalc = false;
+  }
+
+  header.addEventListener('mousedown', dragStart);
+  header.addEventListener('touchstart', dragStart, {passive: false});
+  
+  document.addEventListener('mousemove', dragMove, {passive: false});
+  document.addEventListener('touchmove', dragMove, {passive: false});
+  
+  document.addEventListener('mouseup', dragEnd);
+  document.addEventListener('touchend', dragEnd);
+}
+
+/* ── init ── */
+(function() {
+  document.getElementById('sendDate').value = new Date().toISOString().split('T')[0];
+  applyInk('white');
+  initAutocomplete();
+  ensureData(1);
+  
+  // Load saved state before rendering rows & synchronizing
+  loadState();
+  
+  renderBtns();
+  renderFormRows();
+  setupDragAndDrop();
+  loadCalcHistory();
+  initCalcDrag();
+  
+  isLoaded = true;
+  sync();
+  bindAutocomplete();
+  
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => { setTimeout(calcMaxRows, 100); });
+  } else {
+    setTimeout(calcMaxRows, 300);
+  }
+
+  // Close details dropdown when clicking outside
+  document.addEventListener('click', function(e) {
+    const details = document.getElementById('settingsDropdown');
+    if (details && details.open) {
+      if (!details.contains(e.target)) {
+        details.removeAttribute('open');
+      }
+    }
+  });
+  window.openHistoryModal = function() {
+    const data = localStorage.getItem('pod_document_history');
+    if (data) {
+      try {
+        historyData = JSON.parse(data);
+      } catch(e) { console.error(e); }
+    }
+    document.getElementById('searchInput').value = '';
+    renderHistory();
+    document.getElementById('historyModalMain').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+  window.closeHistoryModal = function() {
+    document.getElementById('historyModalMain').classList.remove('open');
+    document.body.style.overflow = '';
+  };
+  let historyData = [];
+  function formatHistoryDate(isoString) {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  }
+  window.renderHistory = function() {
+    const grid = document.getElementById('historyGrid');
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    
+    const filtered = historyData.filter(item => {
+      const textToSearch = [
+        item.senderName, item.receiverName, item.deliveryTitle, item.deliveryLoc
+      ].join(' ').toLowerCase();
+      return textToSearch.includes(query);
+    });
+    
+    if (filtered.length === 0) {
+      grid.innerHTML = '<div class="empty-state"><span class="lang-en">No documents found.</span><span class="lang-km" style="display:block;margin-top:0.5rem">រកមិនឃើញឯកសារ។</span></div>';
+      grid.style.display = 'block';
+      return;
+    }
+    
+    grid.style.display = 'grid';
+    grid.innerHTML = filtered.map(item => `
+      <div class="history-card" onclick="openHistoryDetail('${item.id}')" ${item.isVoided ? 'style="opacity:0.75;"' : ''}>
+        <div class="history-card-header">
+          <div class="history-card-title" ${item.isVoided ? 'style="color:var(--muted);text-decoration:line-through;"' : ''}>${item.deliveryTitle || 'Untitled Document'}</div>
+          ${item.isVoided ? '<div style="color:var(--red);font-size:0.75rem;font-weight:bold;border:1px solid var(--red);padding:2px 4px;border-radius:4px;">VOID</div>' : ''}
+        </div>
+        <div class="history-card-row">
+          <span class="history-card-label">Date</span>
+          <span class="history-card-value">${formatHistoryDate(item.timestamp)}</span>
+        </div>
+        <div class="history-card-row">
+          <span class="history-card-label">Sender</span>
+          <span class="history-card-value" title="${item.senderName || '-'}">${item.senderName || '-'}</span>
+        </div>
+        <div class="history-card-row">
+          <span class="history-card-label">Receiver</span>
+          <span class="history-card-value" title="${item.receiverName || '-'}">${item.receiverName || '-'}</span>
+        </div>
+        <div class="history-card-row">
+          <span class="history-card-label">Total Items</span>
+          <span class="history-card-value">${item.rowCount || 0}</span>
+        </div>
+      </div>
+    `).join('');
+  };
+  window.openHistoryDetail = function(id) {
+    const item = historyData.find(i => i.id === id);
+    if (!item) return;
+    
+    let itemsHtml = '';
+    if (item.itemData && item.itemData.length > 0) {
+      itemsHtml = `
+        <h3 style="margin-top:1.5rem; font-size:1rem; color:var(--dark);">Items</h3>
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              ${item.showId ? '<th>ID</th>' : ''}
+              <th>Qty</th>
+              <th>Remark</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${item.itemData.map(d => `
+              <tr>
+                <td>${d.name || '-'}</td>
+                ${item.showId ? '<td>' + (d.id || '-') + '</td>' : ''}
+                <td>${d.qty || 1}</td>
+                <td>${d.remark || '-'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+    
+    const content = `
+      <div class="detail-grid">
+        <div class="detail-item">
+          <div class="detail-label">Sender</div>
+          <div class="detail-value">${item.senderName || '-'}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Receiver</div>
+          <div class="detail-value">${item.receiverName || '-'}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Date Sent</div>
+          <div class="detail-value">${item.sendDate || '-'}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Location</div>
+          <div class="detail-value">${item.deliveryLoc || '-'}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Subject</div>
+          <div class="detail-value">${item.deliveryTitle || '-'}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Contact</div>
+          <div class="detail-value">${item.receiverContact || '-'}</div>
+        </div>
+      </div>
+      ${itemsHtml}
+      <div style="margin-top: 2rem; display: flex; align-items: center; justify-content: center; padding-top: 1.5rem; border-top: 1px solid var(--border); gap: 1rem; width: 100%;">
+        ${!item.isVoided ? `
+        <button class="btn-cancel" onclick="voidDocument('${item.id}')" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.3rem; font-size: 0.8rem; padding: 0.65rem 0.5rem; background: var(--input-bg); color: var(--red); border-color: transparent; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+            <circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+          </svg>
+          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><span class="lang-km">ចាត់ទុកជាមោឃៈ</span><span class="lang-divider"> / </span><span class="lang-en">Void Document</span></span>
+        </button>
+        ` : `<div style="flex: 1; display: flex; align-items: center; justify-content: center; color: var(--red); font-weight: bold; font-size: 0.9rem;">[VOIDED]</div>`}
+        <button class="print-btn" onclick="reprintFromHistory('${item.id}')" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.3rem; font-size: 0.8rem; padding: 0.65rem 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; ${item.isVoided ? 'opacity:0.5;pointer-events:none;' : ''}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+            <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/>
+            <rect x="6" y="14" width="12" height="8"/>
+          </svg>
+          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><span class="lang-km">ទាញយក / បោះពុម្ព</span><span class="lang-divider"> / </span><span class="lang-en">Load & Print</span></span>
+        </button>
+      </div>
+    `;
+    
+    document.getElementById('historyModalContent').innerHTML = content;
+    document.getElementById('historyDetailModal').classList.add('open');
+  };
+  window.closeHistoryDetailModal = function() {
+    document.getElementById('historyDetailModal').classList.remove('open');
+  };
+
+  window.reprintFromHistory = function(id) {
+    const item = historyData.find(i => i.id === id);
+    if (!item) return;
+
+    localStorage.setItem('pod_form_state', JSON.stringify(item));
+    
+    // Generate QR Code for the reprinted document
+    const qrContainer = document.getElementById('qrcode-container');
+    if (qrContainer) {
+      qrContainer.innerHTML = '';
+      new QRCode(qrContainer, {
+        text: item.id,
+        width: 70,
+        height: 70,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.L
+      });
+    }
+    
+    loadState();
+    sync();
+    
+    closeHistoryDetailModal();
+    closeHistoryModal();
+    
+    openModal();
+  };
+
+  window.voidDocument = function(id) {
+    customConfirm("តើអ្នកពិតជាចង់ចាត់ទុកឯកសារនេះជាមោឃៈមែនទេ? / Are you sure you want to mark this document as VOID?", () => {
+      let rawData = localStorage.getItem('pod_document_history');
+      if (!rawData) return;
+      let hist = JSON.parse(rawData);
+      let idx = hist.findIndex(i => i.id === id);
+      if (idx !== -1) {
+        hist[idx].isVoided = true;
+        hist[idx].synced = false;
+        localStorage.setItem('pod_document_history', JSON.stringify(hist));
+        historyData = hist;
+        renderHistory();
+        closeHistoryDetailModal();
+        customAlert("ឯកសារត្រូវបានចាត់ទុកជាមោឃៈ! / Document marked as VOID!");
+        if (typeof syncToCloud === 'function') syncToCloud();
+      }
+    });
+  };
+
+  window.forceSaveAutocomplete = function() {
+    const fields = [
+      {id: 'senderName', key: 'dl-sender'},
+      {id: 'receiverName', key: 'dl-recv'},
+      {id: 'receiverContact', key: 'dl-contact'},
+      {id: 'deliveryLoc', key: 'dl-loc'},
+      {id: 'deliveryTitle', key: 'dl-title'}
+    ];
+    
+    fields.forEach(f => {
+      let el = document.getElementById(f.id);
+      if (el && el.value.trim()) {
+        let val = el.value.trim();
+        let history = JSON.parse(localStorage.getItem(f.key) || '[]');
+        if (!history.includes(val)) {
+          history.unshift(val);
+          if (history.length > 25) history.pop();
+          localStorage.setItem(f.key, JSON.stringify(history));
+          let dl = document.getElementById(f.key);
+          if (dl) dl.innerHTML = history.map(v => `<option value="${v.replace(/"/g, '&quot;')}">`).join('');
+        }
+      }
+    });
+
+    let nameHistory = JSON.parse(localStorage.getItem('dl-item-name') || '[]');
+    let idHistory = JSON.parse(localStorage.getItem('dl-item-id') || '[]');
+    let remHistory = JSON.parse(localStorage.getItem('dl-item-rem') || '[]');
+
+    document.querySelectorAll('.f-name').forEach(el => {
+      if (el.value.trim() && !nameHistory.includes(el.value.trim())) {
+        nameHistory.unshift(el.value.trim());
+        if (nameHistory.length > 25) nameHistory.pop();
+      }
+    });
+    
+    document.querySelectorAll('.f-id').forEach(el => {
+      if (el.value.trim() && !idHistory.includes(el.value.trim())) {
+        idHistory.unshift(el.value.trim());
+        if (idHistory.length > 25) idHistory.pop();
+      }
+    });
+    
+    document.querySelectorAll('.f-rem').forEach(el => {
+      if (el.value.trim() && !remHistory.includes(el.value.trim())) {
+        remHistory.unshift(el.value.trim());
+        if (remHistory.length > 25) remHistory.pop();
+      }
+    });
+    
+    localStorage.setItem('dl-item-name', JSON.stringify(nameHistory));
+    localStorage.setItem('dl-item-id', JSON.stringify(idHistory));
+    localStorage.setItem('dl-item-rem', JSON.stringify(remHistory));
+    
+    let dlN = document.getElementById('dl-item-name');
+    if (dlN) dlN.innerHTML = nameHistory.map(v => `<option value="${v.replace(/"/g, '&quot;')}">`).join('');
+    let dlI = document.getElementById('dl-item-id');
+    if (dlI) dlI.innerHTML = idHistory.map(v => `<option value="${v.replace(/"/g, '&quot;')}">`).join('');
+    let dlR = document.getElementById('dl-item-rem');
+    if (dlR) dlR.innerHTML = remHistory.map(v => `<option value="${v.replace(/"/g, '&quot;')}">`).join('');
+  };
+
+  window.syncToCloud = async function() {
+    if (typeof saveState === 'function') saveState();
+    if (typeof saveDocumentHistory === 'function') saveDocumentHistory();
+
+    const url = "https://script.google.com/macros/s/AKfycbwq1lBS0jKE7cnnk72tgoJGiF6mk0FwQ0F9QSAIr3RuBPT5j65faYaex7THuJYfjyvrCw/exec";
+    const statusDot = document.getElementById('syncStatusDot');
+    const statusText = document.getElementById('syncStatusText');
+    
+    if (statusDot) statusDot.className = 'status-dot orange';
+    if (statusText) statusText.innerHTML = '<span class="lang-en">Syncing...</span>';
+    
+    let history = JSON.parse(localStorage.getItem('pod_document_history') || '[]');
+    let unsynced = history.filter(item => !item.synced);
+    
+    try {
+      let response = await fetch(url, {
+        method: 'POST',
+        // By removing mode: 'no-cors', we can read the response but rely on GAS redirection
+        body: JSON.stringify(unsynced),
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8' // avoids preflight issues
+        }
+      });
+      
+      let data = await response.json();
+      
+      if (data.success && data.activeIds) {
+        // Prune history: keep only if it hasn't been synced yet, or if it exists on the server
+        history = history.filter(item => {
+          if (!item.synced) return true; // keep unsynced (new) items
+          return data.activeIds.includes(item.id); // keep synced only if still on server
+        });
+      }
+      
+      history = history.map(item => {
+        item.synced = true;
+        return item;
+      });
+      
+      localStorage.setItem('pod_document_history', JSON.stringify(history));
+      
+      // Refresh the history grid if it's currently open
+      if (typeof renderHistory === 'function') renderHistory();
+      
+      if (statusDot) statusDot.className = 'status-dot green';
+      if (statusText) statusText.innerHTML = '<span class="lang-en">Synced just now</span>';
+    } catch (error) {
+      console.error("Sync error:", error);
+      if (statusDot) statusDot.className = 'status-dot red';
+      if (statusText) statusText.innerHTML = '<span class="lang-en">Sync Failed</span>';
+    }
+  };
+
+  // Close details dropdowns when clicking outside
+  document.addEventListener('click', function(e) {
+    document.querySelectorAll('details.settings-dropdown').forEach(function(details) {
+      if (details.hasAttribute('open') && !details.contains(e.target)) {
+        details.removeAttribute('open');
+      }
+    });
+  });
+
+})();
+</script>
+</body>
+</html>
