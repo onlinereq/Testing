@@ -317,7 +317,7 @@
     try {
       await html5QrcodeScanner.start(
         { facingMode: "environment" },
-        { fps: 15, qrbox: { width: 280, height: 280 }, aspectRatio: 1.0 },
+        { fps: 15, aspectRatio: 1.0 },
         onScanSuccess,
         onScanFailure
       );
