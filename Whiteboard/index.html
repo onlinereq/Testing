@@ -13,6 +13,10 @@
   <!-- html5-qrcode -->
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
+    /* Hide scrollbar globally */
+    ::-webkit-scrollbar { display: none; }
+    * { -ms-overflow-style: none; scrollbar-width: none; }
+    
     :root {
       --red:    #E00028;
       --dark:   #2C2A26;
@@ -21,9 +25,14 @@
       --border: #E6E2D3;
       --bg:     #F9F8F3;
       --white:  #FFFFFF;
-      --input-bg: #F3F1EA;
+      --input-bg: #F4F3ED;
       --primary: #E00028;
       --primary-dark: #B30020;
+      
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -55,7 +64,7 @@
       border: 1px solid var(--border);
       color: var(--mid);
       padding: .45rem 1.1rem;
-      border-radius: 99px;
+      border-radius: 8px;
       font-size: .85rem; font-weight: 600;
       cursor: pointer;
       display: flex; align-items: center; gap: 0.5rem;
@@ -66,7 +75,7 @@
       border: none;
       color: #fff;
       padding: .45rem 1.1rem;
-      border-radius: 99px;
+      border-radius: 8px;
       font-size: .85rem; font-weight: 600;
       cursor: pointer;
       display: flex; align-items: center; gap: 0.5rem;
@@ -77,7 +86,7 @@
     
     /* Main Content */
     main {
-      flex: 1; padding: 1.5rem;
+      flex: 1; padding: max(1.5rem, var(--safe-top)) max(1.5rem, var(--safe-right)) max(1.5rem, var(--safe-bottom)) max(1.5rem, var(--safe-left));
       max-width: 1140px; margin: 0 auto; width: 100%;
     }
     .section-title {
@@ -86,12 +95,25 @@
     }
     
     /* Grid & Cards */
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .split-container { display: flex; gap: 1.5rem; width: 100%; }
+    .column { flex: 1; border-radius: 12px; padding: 1.2rem; display: flex; flex-direction: column; gap: 1rem; }
+    .col-delivery { background: #FFF8F9; border: 1px solid #FCD4DB; }
+    .col-collection { background: #EFF6FF; border: 1px solid #BFDBFE; }
+    @media (max-width: 768px) { 
+      .split-container { flex-direction: column; }
+      
+      /* Ensure 44x44px minimum touch targets */
+      input[type="text"], input[type="date"], select, button {
+        min-height: 44px;
+      }
+    }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.75rem; }
     
     .card {
       background: var(--white); border: 1px solid var(--border);
-      border-radius: 12px; padding: 1.2rem;
-      display: flex; flex-direction: column; gap: 0.8rem;
+      border-radius: 10px; padding: 0.8rem;
+      display: flex; flex-direction: column; gap: 0.5rem;
       transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
       position: relative;
       cursor: pointer;
@@ -99,23 +121,40 @@
     .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); transform: translateY(-2px); border-color: var(--mid); }
     .card.delivered { opacity: 0.6; }
     .card.voided { opacity: 0.5; border-color: var(--red); }
+    .card.selectable:hover { box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3); transform: translateY(-2px); }
+    .card.selected { border-color: #2563EB; background-color: #EFF6FF; box-shadow: 0 0 0 2px #2563EB; }
+    .card.selected .card-title { color: #1D4ED8; }
     
-    .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
-    .card-title { font-weight: 700; font-size: 1rem; color: var(--dark); }
+    .card .check-icon { display: none; width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--border); color: transparent; background: white; vertical-align: middle; margin-right: 0.3rem; margin-top: -0.1rem; }
+    .card.selectable .check-icon { display: inline-flex; align-items: center; justify-content: center; }
+    .card.selected .check-icon { background: #2563EB; border-color: #2563EB; color: white; }
+    
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
+    .card-title { font-weight: 700; font-size: 0.9rem; color: var(--dark); line-height: 1.3; flex: 1; word-break: break-word; min-width: 0; }
     .card-status { 
-      font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);
+      font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); flex-shrink: 0;
     }
     .status-pending { color: var(--primary); border-color: rgba(37, 99, 235, 0.3); background: rgba(37, 99, 235, 0.05); }
     .status-delivered { color: #10B981; border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.05); }
     .status-voided { color: var(--red); border-color: rgba(224, 0, 40, 0.3); background: rgba(224, 0, 40, 0.05); }
     
-    .card-row { display: flex; justify-content: space-between; font-size: 0.85rem; border-bottom: 1px solid var(--input-bg); padding-bottom: 0.3rem; }
+    .card-row { display: flex; justify-content: space-between; font-size: 0.75rem; border-bottom: 1px solid var(--input-bg); padding-bottom: 0.2rem; }
     .card-row:last-child { border-bottom: none; padding-bottom: 0; }
     .card-label { color: var(--muted); }
     .card-val { color: var(--dark); font-weight: 500; text-align: right; max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     
 
     
+    /* Bottom Action Bar */
+    .bottom-action-bar {
+      position: fixed; bottom: -100px; left: 0; right: 0; background: var(--white); box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+      padding: 1rem max(1.5rem, var(--safe-right)) max(1rem, var(--safe-bottom)) max(1.5rem, var(--safe-left));
+      display: flex; justify-content: space-between; align-items: center;
+      transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 90;
+    }
+    .bottom-action-bar.visible { bottom: 0; }
+    .selected-count { font-weight: 700; color: var(--dark); }
+
     /* Scanner Modal */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(44, 42, 38, 0.6); backdrop-filter: blur(4px);
@@ -141,7 +180,7 @@
     .detail-val { font-weight: 500; text-align: right; color: var(--dark); max-width: 70%; word-wrap: break-word; }
     .detail-actions { padding: 1.2rem 2rem; border-top: 1px solid var(--border); background: var(--bg); display: flex; justify-content: flex-end; }
     .btn-deliver {
-      background: #10B981; color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 99px;
+      background: #10B981; color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 8px;
       font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
     }
     .btn-deliver:hover { background: #059669; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35); }
@@ -152,7 +191,7 @@
     .empty { text-align: center; color: var(--muted); margin-top: 3rem; font-size: 0.95rem; }
     
     /* Toast */
-    .toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--dark); color: var(--white); padding: 0.8rem 1.5rem; border-radius: 99px; font-weight: 600; font-size: 0.9rem; transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 200; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+    .toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--dark); color: var(--white); padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 200; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
     .toast.show { bottom: 2rem; }
     
     /* History Specific */
@@ -161,6 +200,29 @@
     .tab { padding: 0.5rem 0; cursor: pointer; font-weight: 600; color: var(--muted); border-bottom: 2px solid transparent; transition: all 0.2s; }
     .tab.active { color: var(--dark); border-bottom-color: var(--dark); }
     .tab:hover:not(.active) { color: var(--mid); }
+    
+    /* Settings Dropdown */
+    .settings-dropdown { position: relative; }
+    .settings-btn {
+      background: linear-gradient(to right, #f4fafe, #e6f4fc); border: 1px solid #72bbf0; color: #44a5e3;
+      padding: .45rem 1.1rem; border-radius: 8px; font-weight: 600; font-size: .85rem;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: .5rem; transition: all .2s;
+      user-select: none; list-style: none; white-space: nowrap;
+    }
+    .settings-btn::-webkit-details-marker { display: none; }
+    .settings-btn:hover { background: var(--input-bg); border-color: var(--dark); color: var(--dark); }
+    .settings-dropdown[open] .settings-btn { background: var(--input-bg); border-color: var(--dark); color: var(--dark); }
+    .settings-dropdown-content {
+      position: absolute; top: 100%; right: 0; margin-top: 0.5rem; background: var(--white);
+      border: 1px solid var(--border); border-radius: 16px; padding: 0.5rem; width: 200px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.08); z-index: 1000; display: flex; flex-direction: column; gap: 0.2rem;
+    }
+    .settings-dropdown-content a {
+      display: block; padding: 0.8rem 1rem; text-decoration: none; color: var(--dark);
+      font-weight: 600; border-radius: 8px; font-size: 0.9rem; transition: background 0.15s;
+    }
+    .settings-dropdown-content a:hover { background: var(--input-bg); }
+
     
   </style>
 </head>
@@ -178,10 +240,24 @@
   </div>
 
   <div class="nav-actions">
-    <button class="btn-primary" onclick="openScanner()">
-      <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-      Scan QR
+    <!-- Tools Dropdown -->
+    <details class="settings-dropdown">
+      <summary class="settings-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+        </svg>
+        Tools
+      </summary>
+      <div class="settings-dropdown-content">
+        <a href="https://onlinereq.github.io/Proof-of-Delivery/index.html">Main Page</a>
+        <a href="https://onlinereq.github.io/Attendance/" target="_blank">Attendance</a>
+      </div>
+    </details>
+    <button class="btn-secondary" id="selectModeBtn" onclick="toggleSelectMode()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+      Select
     </button>
+
     <button class="btn-secondary" onclick="fetchData()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
       Refresh
@@ -192,13 +268,42 @@
 <main>
 
   <div id="pendingContainer">
-    <div class="grid" id="pendingGrid"></div>
+    <div class="split-container">
+      <div class="column col-delivery">
+        <h2 class="section-title" style="color: var(--primary); margin-bottom: 0;">Delivery Tasks</h2>
+        <div class="grid" id="pendingDeliveryGrid"></div>
+      </div>
+      <div class="column col-collection">
+        <h2 class="section-title" style="color: #2563EB; margin-bottom: 0;">Collection Tasks</h2>
+        <div class="grid" id="pendingCollectionGrid"></div>
+      </div>
+    </div>
   </div>
   
-  <div id="historyContainer">
-    <div class="grid" id="historyGrid"></div>
+  <div id="historyContainer" style="display: none;">
+    <div class="split-container">
+      <div class="column col-delivery">
+        <h2 class="section-title" style="color: var(--primary); margin-bottom: 0;">Delivery History</h2>
+        <div class="grid" id="historyDeliveryGrid"></div>
+      </div>
+      <div class="column col-collection">
+        <h2 class="section-title" style="color: #2563EB; margin-bottom: 0;">Collection History</h2>
+        <div class="grid" id="historyCollectionGrid"></div>
+      </div>
+    </div>
   </div>
 </main>
+
+<div class="bottom-action-bar" id="bottomActionBar">
+  <div class="selected-count"><span id="selectedCountSpan">0</span> Selected</div>
+  <div style="display:flex; gap:1rem;">
+    <button class="btn-secondary" onclick="toggleSelectMode()">Cancel</button>
+    <button class="btn-primary" onclick="openBulkConfirm()" style="background: linear-gradient(135deg, #2563EB, #1D4ED8);">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 7"></path></svg>
+      Complete Selected
+    </button>
+  </div>
+</div>
 
 
 
@@ -222,21 +327,21 @@
       <!-- dynamic content -->
     </div>
     <div class="detail-actions" id="detailActions">
-      <button class="btn-deliver" id="btnManualDeliver">✓ Mark Delivered</button>
+      <button class="btn-deliver" id="btnManualDeliver">Mark Delivered</button>
     </div>
   </div>
 </div>
 
 <div class="modal-overlay" id="confirmModal" style="z-index: 150;" onclick="if(event.target===this) closeConfirm()">
-  <div class="modal-content" style="max-width: 320px; text-align: center;">
+  <div class="modal-content" style="max-width: 380px; text-align: center;">
     <div class="modal-header" style="justify-content: center;">
-      <div class="modal-title">Confirm Delivery</div>
+      <div class="modal-title" id="confirmTitle">Confirm Delivery</div>
     </div>
     <div class="detail-body" style="padding-bottom: 2rem;">
-      <p style="margin-bottom: 1.5rem; color: var(--dark);">Are you sure you want to mark this document as delivered?</p>
-      <div style="display: flex; gap: 1rem; justify-content: center;">
-        <button class="btn-secondary" onclick="closeConfirm()" style="padding: 0.6rem 1.5rem;">Cancel</button>
-        <button class="btn-deliver" id="confirmOkBtn" style="padding: 0.6rem 1.5rem;">Yes, Deliver</button>
+      <p style="margin-bottom: 1.5rem; color: var(--dark);" id="confirmText">Are you sure you want to mark this document as delivered?</p>
+      <div style="display: flex; gap: 1rem; justify-content: space-between; width: 100%;">
+        <button class="btn-secondary" onclick="closeConfirm()" style="flex: 1 1 50%; padding: 0.8rem; border-radius: 12px; justify-content: center; white-space: nowrap;">Cancel</button>
+        <button class="btn-deliver" id="confirmOkBtn" style="flex: 1 1 50%; padding: 0.8rem; border-radius: 12px; display: flex; justify-content: center; align-items: center; white-space: nowrap;">Yes, Deliver</button>
       </div>
     </div>
   </div>
@@ -268,12 +373,15 @@
   }
   
   async function fetchData() {
-    document.getElementById('pendingGrid').innerHTML = '<div class="loader"></div>';
-    document.getElementById('historyGrid').innerHTML = '';
+    document.getElementById('pendingDeliveryGrid').innerHTML = '<div class="loader"></div>';
+    document.getElementById('pendingCollectionGrid').innerHTML = '<div class="loader"></div>';
+    document.getElementById('historyDeliveryGrid').innerHTML = '';
+    document.getElementById('historyCollectionGrid').innerHTML = '';
     
     try {
       if(API_URL === "YOUR_APPS_SCRIPT_WEB_APP_URL") {
-        document.getElementById('pendingGrid').innerHTML = '<div class="empty">Please configure the API_URL in index.html to connect to your Google Sheet.</div>';
+        document.getElementById('pendingDeliveryGrid').innerHTML = '<div class="empty">Please configure the API_URL in index.html to connect to your Google Sheet.</div>';
+        document.getElementById('pendingCollectionGrid').innerHTML = '';
         return;
       }
       
@@ -284,10 +392,12 @@
         allDocs = json.data;
         renderData();
       } else {
-        document.getElementById('pendingGrid').innerHTML = `<div class="empty">Error: ${json.error}</div>`;
+        document.getElementById('pendingDeliveryGrid').innerHTML = `<div class="empty">Error: ${json.error}</div>`;
+        document.getElementById('pendingCollectionGrid').innerHTML = '';
       }
     } catch(e) {
-      document.getElementById('pendingGrid').innerHTML = `<div class="empty">Failed to load data. Network error.</div>`;
+      document.getElementById('pendingDeliveryGrid').innerHTML = `<div class="empty">Failed to load data. Network error.</div>`;
+      document.getElementById('pendingCollectionGrid').innerHTML = '';
     }
   }
   
@@ -298,8 +408,17 @@
     document.getElementById('pendingCount').innerText = pending.length;
     document.getElementById('historyCount').innerText = history.length;
     
-    renderGrid('pendingGrid', pending);
-    renderGrid('historyGrid', history);
+    const pendingDel = pending.filter(d => d.taskType !== 'Collection');
+    const pendingCol = pending.filter(d => d.taskType === 'Collection');
+    
+    const historyDel = history.filter(d => d.taskType !== 'Collection');
+    const historyCol = history.filter(d => d.taskType === 'Collection');
+    
+    renderGrid('pendingDeliveryGrid', pendingDel);
+    renderGrid('pendingCollectionGrid', pendingCol);
+    
+    renderGrid('historyDeliveryGrid', historyDel);
+    renderGrid('historyCollectionGrid', historyCol);
   }
   
   function renderGrid(containerId, data) {
@@ -314,13 +433,23 @@
       if(item.status === 'Delivered') statusCls = 'status-delivered';
       if(item.status === 'Voided') statusCls = 'status-voided';
       
+      const isSelected = typeof selectedIds !== 'undefined' && selectedIds.has(item.id);
+      const selectableCls = (typeof isSelectMode !== 'undefined' && isSelectMode && item.status === 'Pending') ? 'selectable ' : '';
+      const selectedCls = isSelected ? 'selected ' : '';
+      
       return `
-      <div class="card ${item.status.toLowerCase()}" id="card-${item.id}" onclick="openDetail('${item.id}')">
-        <div class="card-header">
+      <div class="card ${item.status.toLowerCase()} ${selectableCls}${selectedCls}" id="card-${item.id}" onclick="handleCardClick('${item.id}')">
+        <div class="card-header" style="flex-direction: column; gap: 0.4rem; align-items: stretch;">
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 0.4rem; min-height: 20px;">
+              <span class="check-icon" style="margin:0;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+              ${item.taskType === 'Collection' ? '<span style="background: #2563EB; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; font-weight: 700;">COLLECTION</span>' : ''}
+            </div>
+            <div class="card-status ${statusCls}">${item.status.toUpperCase()}</div>
+          </div>
           <div class="card-title">${item.title || 'Untitled'}</div>
-          <div class="card-status ${statusCls}">${item.status.toUpperCase()}</div>
         </div>
-        <div style="font-size:0.7rem; color:var(--muted); font-family:monospace; margin-top:-0.3rem; margin-bottom:0.5rem">${item.id}</div>
+        <div style="font-size:0.65rem; color:var(--muted); font-family:monospace; margin-top:-0.3rem; margin-bottom:0.3rem">${item.id}</div>
         
         <div class="card-row"><span class="card-label">Sender</span><span class="card-val" title="${item.sender}">${item.sender || '-'}</span></div>
         <div class="card-row"><span class="card-label">Receiver</span><span class="card-val" title="${item.receiver}">${item.receiver || '-'}</span></div>
@@ -329,6 +458,50 @@
       </div>
       `;
     }).join('');
+  }
+  
+  let isSelectMode = false;
+  let selectedIds = new Set();
+  
+  function toggleSelectMode() {
+    isSelectMode = !isSelectMode;
+    selectedIds.clear();
+    const btn = document.getElementById('selectModeBtn');
+    if (isSelectMode) {
+      btn.style.background = '#EFF6FF';
+      btn.style.borderColor = '#2563EB';
+      btn.style.color = '#1D4ED8';
+    } else {
+      btn.style.background = '';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }
+    updateBottomBar();
+    renderData();
+  }
+  
+  function updateBottomBar() {
+    const bar = document.getElementById('bottomActionBar');
+    if (selectedIds.size > 0) {
+      document.getElementById('selectedCountSpan').innerText = selectedIds.size;
+      bar.classList.add('visible');
+    } else {
+      bar.classList.remove('visible');
+    }
+  }
+
+  function handleCardClick(id) {
+    if (isSelectMode) {
+      const item = allDocs.find(d => d.id === id);
+      if (item && item.status === 'Pending') {
+        if (selectedIds.has(id)) selectedIds.delete(id);
+        else selectedIds.add(id);
+        renderData();
+        updateBottomBar();
+      }
+    } else {
+      openDetail(id);
+    }
   }
   
   function openDetail(id) {
@@ -351,9 +524,10 @@
     const actionBtn = document.getElementById('btnManualDeliver');
     if(item.status === 'Pending') {
       document.getElementById('detailActions').style.display = 'flex';
+      actionBtn.innerText = item.taskType === 'Collection' ? 'Mark Collected' : 'Mark Delivered';
       actionBtn.onclick = () => {
         closeDetail();
-        manualMarkDelivered(item.id);
+        manualMarkDelivered(item.id, item.taskType);
       };
     } else {
       document.getElementById('detailActions').style.display = 'none';
@@ -366,7 +540,12 @@
     document.getElementById('detailModal').classList.remove('open');
   }
   
-  function openConfirm(id) {
+  function openConfirm(id, taskType) {
+    const isCollection = taskType === 'Collection';
+    document.getElementById('confirmTitle').innerText = isCollection ? 'Confirm Collection' : 'Confirm Delivery';
+    document.getElementById('confirmText').innerText = isCollection ? 'Are you sure you want to mark this document as collected?' : 'Are you sure you want to mark this document as delivered?';
+    document.getElementById('confirmOkBtn').innerText = isCollection ? 'Yes, Collect' : 'Yes, Deliver';
+
     document.getElementById('confirmModal').classList.add('open');
     document.getElementById('confirmOkBtn').onclick = () => {
       closeConfirm();
@@ -376,6 +555,20 @@
   
   function closeConfirm() {
     document.getElementById('confirmModal').classList.remove('open');
+  }
+
+  function openBulkConfirm() {
+    if (typeof selectedIds === 'undefined' || selectedIds.size === 0) return;
+    document.getElementById('confirmTitle').innerText = 'Confirm Bulk Complete';
+    document.getElementById('confirmText').innerText = `Are you sure you want to mark these ${selectedIds.size} selected documents as complete?`;
+    document.getElementById('confirmOkBtn').innerText = 'Yes, Complete All';
+
+    document.getElementById('confirmModal').classList.add('open');
+    document.getElementById('confirmOkBtn').onclick = () => {
+      closeConfirm();
+      processBulkDelivery(Array.from(selectedIds));
+      toggleSelectMode(); // Exit select mode after confirm
+    };
   }
 
   function openScanner() {
@@ -410,8 +603,8 @@
     }, 1500);
   }
   
-  function manualMarkDelivered(id) {
-    openConfirm(id);
+  function manualMarkDelivered(id, taskType) {
+    openConfirm(id, taskType);
   }
   
   async function processDelivery(id) {
@@ -425,9 +618,11 @@
     
     // 2. Background Sync
     try {
+      const mName = localStorage.getItem('pod_messenger_name') || 'Admin (Whiteboard)';
+      const dId = localStorage.getItem('pod_device_id') || 'Unknown';
       const res = await fetch(API_URL, {
         method: 'POST',
-        body: JSON.stringify({ action: 'markDelivered', id: id, messengerName: 'Admin (Whiteboard)' })
+        body: JSON.stringify({ action: 'markDelivered', id: id, messengerName: mName, deviceId: dId })
       });
       const json = await res.json();
       if(!json.success && json.message !== 'Already delivered') {
@@ -438,7 +633,49 @@
     } catch(e) {
       showToast('Network error while updating.');
       // Rollback on error
+      // Rollback on error
       if(item) { item.status = "Pending"; renderData(); }
+    }
+  }
+
+  async function processBulkDelivery(ids) {
+    if (!ids || ids.length === 0) return;
+    
+    // 1. Optimistic Update
+    const itemsToUpdate = [];
+    ids.forEach(id => {
+      const item = allDocs.find(d => d.id === id);
+      if (item && item.status === "Pending") {
+        item.status = "Delivered";
+        itemsToUpdate.push(item);
+      }
+    });
+    
+    if (itemsToUpdate.length === 0) return;
+    
+    renderData();
+    showToast(`Marked ${itemsToUpdate.length} items as completed!`);
+    
+    // 2. Background Sync
+    try {
+      const mName = localStorage.getItem('pod_messenger_name') || 'Admin (Whiteboard)';
+      const dId = localStorage.getItem('pod_device_id') || 'Unknown';
+      
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'markDeliveredBulk', ids: ids, messengerName: mName, deviceId: dId })
+      });
+      const json = await res.json();
+      if (!json.success) {
+        showToast('Error: ' + json.error);
+        // Rollback
+        itemsToUpdate.forEach(item => item.status = "Pending");
+        renderData();
+      }
+    } catch(e) {
+      showToast('Network error while bulk updating.');
+      itemsToUpdate.forEach(item => item.status = "Pending");
+      renderData();
     }
   }
   
@@ -453,6 +690,14 @@
   
   // Initial load
   fetchData();
+  // Close details dropdowns when clicking outside
+  document.addEventListener('click', function(e) {
+    document.querySelectorAll('details.settings-dropdown').forEach(function(details) {
+      if (details.hasAttribute('open') && !details.contains(e.target)) {
+        details.removeAttribute('open');
+      }
+    });
+  });
 </script>
 </body>
 </html>
