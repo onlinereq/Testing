@@ -12,6 +12,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Hanuman:wght@400;700&family=Cormorant+Garamond:wght@600;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
+    /* Hide scrollbar globally */
+    ::-webkit-scrollbar { display: none; }
+    * { -ms-overflow-style: none; scrollbar-width: none; }
+    
     :root {
       --primary: #E00028;
       --primary-dark: #B30020;
@@ -112,8 +116,13 @@
     }
     
     .cancel-btn {
-      display: none; margin-top: 2rem; background: var(--white); border: 1px solid var(--border);
-      padding: 0.8rem 2rem; border-radius: 99px; font-weight: 600; color: #64748B; cursor: pointer;
+      display: none; margin-top: 2rem; background: var(--white); border: 1px solid var(--border); min-height: 44px;
+      padding: 0.8rem 2rem; border-radius: 8px; font-weight: 600; color: #64748B; cursor: pointer;
+    }
+    
+    .btn-manual {
+      background: #F1F5F9; border: 1px solid #E2E8F0; min-height: 44px;
+      padding: 0.8rem 2rem; border-radius: 8px; font-weight: 600; color: #64748B; cursor: pointer;
     }
     
     /* Overlay Success */
@@ -129,10 +138,15 @@
     /* Toast */
     .toast {
       position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%);
-      background: var(--dark); color: white; padding: 0.8rem 1.5rem; border-radius: 99px;
+      background: var(--dark); color: white; padding: 0.8rem 1.5rem; border-radius: 8px;
       font-weight: 600; transition: bottom 0.4s; z-index: 200; white-space: nowrap;
     }
     .toast.show { bottom: max(2rem, env(safe-area-inset-bottom, 2rem)); }
+    
+    .modal-btn {
+      background: var(--dark); color: white; padding: 0.8rem 1.5rem; border-radius: 8px; min-height: 44px;
+      font-weight: 600; cursor: pointer; border: none; font-size: 1rem;
+    }
   </style>
 </head>
 <body>
