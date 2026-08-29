@@ -2,7 +2,7 @@
 <html lang="km">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -14,6 +14,10 @@
 <link rel="icon" type="image/png" href="icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Hanuman:wght@400;700&family=Cormorant+Garamond:wght@600;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
+/* Hide scrollbar globally */
+::-webkit-scrollbar { display: none; }
+* { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* ═══════════════════════════════════════
    TOKENS
 ═══════════════════════════════════════ */
@@ -25,6 +29,12 @@
   --mid:    #8A877E;
   --muted:  #B0AD9E;
   --border: #E6E2D3;
+  
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  
   --border-focus: rgba(224, 0, 40, 0.4);
   
   --bg:     #F9F8F3;
@@ -106,7 +116,8 @@ body {
   line-height: 1.2;
 }
 
-.top-brand span { font-size: .8rem; color: var(--muted); }
+.top-brand span { font-size: .8rem; color: var(--muted); white-space: nowrap; }
+.top-brand { white-space: nowrap; }
 
 .top-spacer { flex: 1; }
 
@@ -114,15 +125,17 @@ body {
   background: linear-gradient(135deg, #2563EB, #1D4ED8);
   color: #fff;
   border: none;
-  padding: .45rem 1.1rem;
-  border-radius: 99px;
+  padding: .35rem .75rem;
+  border-radius: 8px;
   font-family: 'DM Sans', 'Battambang', sans-serif;
-  font-size: .85rem;
+  font-size: .8rem;
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: .5rem;
+  justify-content: center;
+  min-width: 175px;
+  gap: .4rem;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
   transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
@@ -135,15 +148,15 @@ body {
   background: var(--white);
   border: 1px solid var(--border);
   color: var(--mid);
-  padding: .45rem 1.1rem;
-  border-radius: 99px;
+  padding: .35rem .75rem;
+  border-radius: 8px;
   font-family: 'DM Sans', 'Battambang', sans-serif;
-  font-size: .85rem;
+  font-size: .8rem;
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: .5rem;
+  gap: .4rem;
   transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
 }
@@ -354,7 +367,7 @@ textarea.f-rem {
   border: 1px solid var(--border);
   color: var(--mid);
   padding: .26rem .7rem;
-  border-radius: 99px;
+  border-radius: 8px;
   font-size: .82rem;
   font-family: 'DM Sans', sans-serif;
   font-weight: 600;
@@ -479,7 +492,7 @@ textarea.f-rem {
   border: 1px solid var(--border);
   color: var(--mid);
   padding: .55rem 1.2rem;
-  border-radius: 99px;
+  border-radius: 8px;
   font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', sans-serif;
   font-size: .82rem;
   font-weight: 600;
@@ -493,7 +506,7 @@ textarea.f-rem {
   border: none;
   color: #fff;
   padding: .55rem 1.4rem;
-  border-radius: 99px;
+  border-radius: 8px;
   font-family: 'Battambang', 'Khmer OS Battambang', 'Hanuman', sans-serif;
   font-size: .82rem;
   font-weight: 700;
@@ -615,7 +628,68 @@ textarea.f-rem {
     width: auto;
     left: 1rem;
     right: 1rem;
-    bottom: 1rem;
+    bottom: calc(80px + var(--safe-bottom));
+  }
+}
+
+/* ═══════════════════════════════════════
+   MOBILE LAYOUT (max-width: 768px)
+═══════════════════════════════════════ */
+@media screen and (max-width: 768px) {
+  .page {
+    padding: max(1rem, var(--safe-top)) max(1rem, var(--safe-right)) calc(90px + max(1rem, var(--safe-bottom))) max(1rem, var(--safe-left));
+  }
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+  .top-bar {
+    padding-bottom: 1rem;
+  }
+  .top-actions {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--white);
+    padding: 0.5rem max(1rem, var(--safe-right)) max(0.5rem, var(--safe-bottom)) max(1rem, var(--safe-left));
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+  }
+  .top-actions button {
+    flex: 1;
+    flex-direction: column;
+    padding: 0.5rem;
+    font-size: 0.65rem;
+    min-width: 0;
+    min-height: 50px;
+    border-radius: 8px;
+    background: transparent !important;
+    color: var(--mid) !important;
+    border: none !important;
+    box-shadow: none !important;
+    gap: 0.2rem;
+    white-space: normal;
+  }
+  .top-actions button:active { background: var(--input-bg) !important; }
+  .top-actions button svg { width: 22px; height: 22px; margin-bottom: 2px; }
+  .top-actions .print-btn { color: #2563EB !important; }
+  
+  /* Make settings dropdown cover full screen or at least adjust */
+  .settings-dropdown-content {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90vw;
+    max-width: 320px;
+  }
+  
+  /* Ensure 44x44px minimum touch targets */
+  input[type="text"], input[type="date"], select, button {
+    min-height: 44px;
   }
 }
 
@@ -1105,15 +1179,15 @@ textarea.f-rem {
   background: var(--white);
   border: 1px solid var(--border);
   color: var(--mid);
-  padding: .45rem 1.1rem;
-  border-radius: 99px;
+  padding: .35rem .75rem;
+  border-radius: 8px;
   font-family: 'DM Sans', 'Battambang', sans-serif;
-  font-size: .85rem;
+  font-size: .8rem;
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: .5rem;
+  gap: .4rem;
   transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
   list-style: none;
@@ -1366,7 +1440,7 @@ body.lang-bilingual #printDoc .pd-hint {
         Tools
       </summary>
       <div class="settings-dropdown-content" style="width: 200px; padding: 0.5rem; gap: 0.2rem; left: 0; right: auto;">
-        <a href="https://example.com" target="_blank" style="display: block; padding: 0.8rem 1rem; text-decoration: none; color: var(--dark); font-family: 'DM Sans', sans-serif; font-weight: 600; border-radius: 8px; font-size: 0.9rem; transition: background 0.15s;" onmouseover="this.style.background='var(--input-bg)'" onmouseout="this.style.background='transparent'">White Board</a>
+        <a href="Whiteboard/index.html" target="_blank" style="display: block; padding: 0.8rem 1rem; text-decoration: none; color: var(--dark); font-family: 'DM Sans', sans-serif; font-weight: 600; border-radius: 8px; font-size: 0.9rem; transition: background 0.15s;" onmouseover="this.style.background='var(--input-bg)'" onmouseout="this.style.background='transparent'">Whiteboard</a>
         <a href="https://onlinereq.github.io/Attendance/" target="_blank" style="display: block; padding: 0.8rem 1rem; text-decoration: none; color: var(--dark); font-family: 'DM Sans', sans-serif; font-weight: 600; border-radius: 8px; font-size: 0.9rem; transition: background 0.15s;" onmouseover="this.style.background='var(--input-bg)'" onmouseout="this.style.background='transparent'">Attendance</a>
       </div>
     </details>
@@ -1416,58 +1490,144 @@ body.lang-bilingual #printDoc .pd-hint {
       </svg>
       <span class="lang-km">បោះពុម្ព</span><span class="lang-divider"> / </span><span class="lang-en">Print</span>
     </button>
+    <button class="print-btn" id="btnSubmitCollection" onclick="submitCollection()" style="display: none; background: #2563EB;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+      <span class="lang-km">បញ្ជូនសំណើ</span><span class="lang-divider"> / </span><span class="lang-en">Submit Collection</span>
+    </button>
   </div>
   </div>
+  
+  <div style="display: flex; justify-content: center; margin-bottom: 1.5rem;">
+    <div style="background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 0.25rem; display: inline-flex; gap: 0.25rem; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+      <input type="radio" name="taskType" id="typeDelivery" value="Delivery" checked style="display: none;" onchange="sync(); updateTaskToggleUI();">
+      <label for="typeDelivery" id="lblDelivery" style="padding: 0.5rem 1.5rem; border-radius: 6px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; background: var(--input-bg); color: var(--dark);">
+        <span class="lang-km">ដឹកជញ្ជូន</span><span class="lang-divider"> / </span><span class="lang-en">Delivery</span>
+      </label>
+      
+      <input type="radio" name="taskType" id="typeCollection" value="Collection" style="display: none;" onchange="document.getElementById('senderName').value=''; sync(); updateTaskToggleUI();">
+      <label for="typeCollection" id="lblCollection" style="padding: 0.5rem 1.5rem; border-radius: 6px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; color: var(--muted); background: transparent;">
+        <span class="lang-km">ប្រមូល</span><span class="lang-divider"> / </span><span class="lang-en">Collection</span>
+      </label>
+    </div>
+  </div>
+  <script>
+    function updateTaskToggleUI() {
+      const el = document.querySelector('input[name="taskType"]:checked');
+      if (!el) return;
+      const type = el.value;
+      const lblDel = document.getElementById('lblDelivery');
+      const lblCol = document.getElementById('lblCollection');
+      
+      const isCol = (type === 'Collection');
+      
+      if (isCol) {
+        document.body.style.setProperty('--bg', '#EFF6FF');
+        document.body.style.backgroundColor = '#EFF6FF';
+        if(lblCol) { lblCol.style.background = 'var(--input-bg)'; lblCol.style.color = 'var(--dark)'; }
+        if(lblDel) { lblDel.style.background = 'transparent'; lblDel.style.color = 'var(--muted)'; }
+      } else {
+        document.body.style.removeProperty('--bg');
+        document.body.style.backgroundColor = '';
+        if(lblDel) { lblDel.style.background = 'var(--input-bg)'; lblDel.style.color = 'var(--dark)'; }
+        if(lblCol) { lblCol.style.background = 'transparent'; lblCol.style.color = 'var(--muted)'; }
+      }
+
+      // Toggle Buttons
+      const btnPrint = document.querySelector('.print-btn:not(#btnSubmitCollection)');
+      const btnSubmit = document.getElementById('btnSubmitCollection');
+      if (btnPrint) btnPrint.style.display = isCol ? 'none' : '';
+      if (btnSubmit) btnSubmit.style.display = isCol ? '' : 'none';
+
+      // Toggle Fields & Cards
+      const fDate = document.getElementById('fieldSendDate');
+      const fRecName = document.getElementById('fieldReceiverName');
+      const fPages = document.getElementById('fieldTotalPages');
+      const cardItems = document.getElementById('cardItems');
+
+      if (fDate) fDate.style.display = isCol ? 'none' : '';
+      if (fRecName) fRecName.style.display = isCol ? 'none' : '';
+      if (fPages) fPages.style.display = isCol ? 'none' : '';
+      if (cardItems) cardItems.style.display = isCol ? 'none' : '';
+
+      // Update Labels
+      const lSenderTitle = document.getElementById('lblCardSenderTitle');
+      const lSenderName = document.getElementById('lblSenderName');
+      const lReceiverTitle = document.getElementById('lblCardReceiverTitle');
+      const lContact = document.getElementById('lblReceiverContact');
+      const lLoc = document.getElementById('lblDeliveryLoc');
+      const lDocName = document.getElementById('lblDeliveryTitle');
+
+      if (isCol) {
+        if (lSenderTitle) lSenderTitle.innerHTML = '<span class="lang-km">ប្រមូលពី</span><span class="lang-divider"> / </span><span class="lang-en">Collect From</span>';
+        if (lSenderName) lSenderName.innerHTML = '<span class="lang-km">ឈ្មោះអ្នកប្រគល់</span><span class="lang-divider"> / </span><span class="lang-en">Person Name</span>';
+        if (lReceiverTitle) lReceiverTitle.innerHTML = '<span class="lang-km">ទីតាំងប្រមូល</span><span class="lang-divider"> / </span><span class="lang-en">Collection Details</span>';
+        if (lContact) lContact.innerHTML = '<span class="lang-km">លេខទូរស័ព្ទ</span><span class="lang-divider"> / </span><span class="lang-en">Contact Number</span>';
+        if (lLoc) lLoc.innerHTML = '<span class="lang-km">ទីតាំងប្រមូល</span><span class="lang-divider"> / </span><span class="lang-en">Collection Location</span><span style="color:red; margin-left:4px;">*</span>';
+        if (lDocName) lDocName.innerHTML = '<span class="lang-km">ឈ្មោះឯកសារ</span><span class="lang-divider"> / </span><span class="lang-en">Document Name</span>';
+      } else {
+        if (lSenderTitle) lSenderTitle.innerHTML = '<span class="lang-km">អ្នកផ្ញើ</span><span class="lang-divider"> / </span><span class="lang-en">Sender</span>';
+        if (lSenderName) lSenderName.innerHTML = '<span class="lang-km">ឈ្មោះអ្នកផ្ញើ</span><span class="lang-divider"> / </span><span class="lang-en">Sender Name</span>';
+        if (lReceiverTitle) lReceiverTitle.innerHTML = '<span class="lang-km">អ្នកទទួល</span><span class="lang-divider"> / </span><span class="lang-en">Receiver</span>';
+        if (lContact) lContact.innerHTML = '<span class="lang-km">លេខទូរស័ព្ទអ្នកទទួល</span><span class="lang-divider"> / </span><span class="lang-en">Receiver Contact</span>';
+        if (lLoc) lLoc.innerHTML = '<span class="lang-km">ទីតាំងដឹកជញ្ជូន</span><span class="lang-divider"> / </span><span class="lang-en">Delivery Location</span>';
+        if (lDocName) lDocName.innerHTML = '<span class="lang-km">ចំណងជើង</span><span class="lang-divider"> / </span><span class="lang-en">Title</span>';
+      }
+    }
+  </script>
 
   <div class="card-grid">
 
-    <div class="card">
-      <div class="card-title"><span class="lang-km">អ្នកផ្ញើ</span><span class="lang-divider"> / </span><span class="lang-en">Sender</span></div>
+    <div class="card" id="cardSender">
+      <div class="card-title" id="lblCardSenderTitle"><span class="lang-km">អ្នកផ្ញើ</span><span class="lang-divider"> / </span><span class="lang-en">Sender</span></div>
       <div class="g1">
         <div class="field">
-          <label><span class="lang-km">ឈ្មោះអ្នកផ្ញើ</span><span class="lang-divider"> / </span><span class="lang-en">Sender Name</span></label>
+          <label id="lblSenderName"><span class="lang-km">ឈ្មោះអ្នកផ្ញើ</span><span class="lang-divider"> / </span><span class="lang-en">Sender Name</span></label>
           <input type="text" id="senderName" placeholder="ឈ្មោះពេញ / Full Name" oninput="sync()">
         </div>
-        <div class="field">
+        <div class="field" id="fieldSendDate">
           <label><span class="lang-km">កាលបរិច្ឆេទផ្ញើ</span><span class="lang-divider"> / </span><span class="lang-en">Date Sent</span></label>
           <input type="date" id="sendDate" oninput="sync()">
         </div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-title"><span class="lang-km">អ្នកទទួល</span><span class="lang-divider"> / </span><span class="lang-en">Receiver</span></div>
+    <div class="card" id="cardReceiver">
+      <div class="card-title" id="lblCardReceiverTitle"><span class="lang-km">អ្នកទទួល</span><span class="lang-divider"> / </span><span class="lang-en">Receiver</span></div>
       <div class="g1">
-        <div class="field">
+        <div class="field" id="fieldReceiverName">
           <label><span class="lang-km">ឈ្មោះអ្នកទទួល</span><span class="lang-divider"> / </span><span class="lang-en">Receiver Name</span></label>
           <input type="text" id="receiverName" placeholder="ឈ្មោះពេញ / Full Name" oninput="sync()">
         </div>
         <div class="field">
-          <label><span class="lang-km">លេខទូរស័ព្ទអ្នកទទួល</span><span class="lang-divider"> / </span><span class="lang-en">Receiver Contact</span></label>
+          <label id="lblReceiverContact"><span class="lang-km">លេខទូរស័ព្ទអ្នកទទួល</span><span class="lang-divider"> / </span><span class="lang-en">Receiver Contact</span></label>
           <input type="text" id="receiverContact" placeholder="លេខទូរស័ព្ទ / Phone Number" oninput="sync()">
         </div>
         <div class="field" style="margin-top: 0.2rem;">
-          <label><span class="lang-km">ទីតាំងដឹកជញ្ជូន</span><span class="lang-divider"> / </span><span class="lang-en">Delivery Location</span></label>
+          <label id="lblDeliveryLoc"><span class="lang-km">ទីតាំងដឹកជញ្ជូន</span><span class="lang-divider"> / </span><span class="lang-en">Delivery Location</span></label>
           <input type="text" id="deliveryLoc" placeholder="ការិយាល័យ / អាសយដ្ឋាន | Office / Address" oninput="sync()">
         </div>
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" id="cardSubject">
       <div class="card-title"><span class="lang-km">ប្រធានបទ</span><span class="lang-divider"> / </span><span class="lang-en">Subject &amp; Package</span></div>
       <div class="g1">
         <div class="field">
-          <label><span class="lang-km">ចំណងជើង</span><span class="lang-divider"> / </span><span class="lang-en">Title</span></label>
+          <label id="lblDeliveryTitle"><span class="lang-km">ចំណងជើង</span><span class="lang-divider"> / </span><span class="lang-en">Title</span></label>
           <input type="text" id="deliveryTitle" placeholder="ឧ. ឯកសារដើមរបស់ ABC ពី DEC / e.g. Original ABC from DEC" oninput="sync()">
         </div>
-        <div class="field">
+        <div class="field" id="fieldTotalPages">
           <label><span class="lang-km">ចំនួនទំព័រសរុប</span><span class="lang-divider"> / </span><span class="lang-en">Total Pages</span></label>
           <input type="number" min="0" id="totalPages" placeholder="ឧ. ៥ / e.g. 5" oninput="sync()">
         </div>
       </div>
     </div>
 
-    <div class="card card-full">
+    <div class="card card-full" id="cardItems">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .6rem;">
         <div class="card-title" style="margin-bottom: 0;"><span class="lang-km">បញ្ជីវត្ថុ</span><span class="lang-divider"> / </span><span class="lang-en">Items</span></div>
         <div style="display: flex; align-items: center; gap: 1rem;">
@@ -1784,7 +1944,7 @@ body.lang-bilingual #printDoc .pd-hint {
          alt="Lockton IBS">
     <span id="pdLogoFb" class="pd-logo-fb" style="display:none">LOCKTON IBS</span>
     <div class="pd-company" id="pdCompanyPrint" style="white-space: nowrap; width: 100%; overflow: hidden; text-overflow: clip;"></div>
-    <div class="pd-badge"><span class="lang-km">ឯកសារបញ្ជាក់ការប្រគល់ឯកសារ</span><span class="lang-divider"> &nbsp;/&nbsp; </span><span class="lang-en">Proof of Document Delivery</span></div>
+    <div class="pd-badge" id="pdBadge"><span class="lang-km">ឯកសារបញ្ជាក់ការប្រគល់ឯកសារ</span><span class="lang-divider"> &nbsp;/&nbsp; </span><span class="lang-en">Proof of Document Delivery</span></div>
     <div id="qrcode-container" style="position: absolute; top: 0mm; right: 0mm; width: 22mm; height: 22mm; border: 1.5pt solid var(--ink-bd); padding: 1mm; background: var(--paper); border-radius: 2mm;"></div>
   </div>
 
@@ -1957,7 +2117,17 @@ function applyInk(colour) {
 }
 
 /* ── modal ── */
-function openModal() { document.getElementById('paperModal').classList.add('open'); }
+function openModal() { 
+  const taskType = document.querySelector('input[name="taskType"]:checked')?.value || 'Delivery';
+  if (taskType === 'Delivery') {
+    const receiverName = document.getElementById('receiverName').value.trim();
+    if (!receiverName) {
+      customAlert('សូមបញ្ចូលឈ្មោះអ្នកទទួល<br>Please enter Receiver Name');
+      return;
+    }
+  }
+  document.getElementById('paperModal').classList.add('open'); 
+}
 function closeModal() { document.getElementById('paperModal').classList.remove('open'); }
 
 document.getElementById('paperModal').addEventListener('click', function(e) {
@@ -2330,6 +2500,16 @@ function doSync() {
   setF('pd-location', shrinkName(document.getElementById('deliveryLoc').value.trim()));
   setF('pd-title',    esc(document.getElementById('deliveryTitle').value.trim()));
 
+  const taskType = document.querySelector('input[name="taskType"]:checked')?.value || 'Delivery';
+  const pdBadge = document.getElementById('pdBadge');
+  if (pdBadge) {
+    if (taskType === 'Collection') {
+      pdBadge.innerHTML = '<span class="lang-km">សំណើសុំប្រមូលឯកសារ</span><span class="lang-divider"> &nbsp;/&nbsp; </span><span class="lang-en">Document Collection Request</span>';
+    } else {
+      pdBadge.innerHTML = '<span class="lang-km">ឯកសារបញ្ជាក់ការប្រគល់ឯកសារ</span><span class="lang-divider"> &nbsp;/&nbsp; </span><span class="lang-en">Proof of Document Delivery</span>';
+    }
+  }
+
   const compInput = document.getElementById('companyNameInput');
   const compPrint = document.getElementById('pdCompanyPrint');
   if (compInput && compPrint) {
@@ -2533,7 +2713,8 @@ function saveState() {
     showFooterMsg: document.getElementById('showFooterMsg')?.checked !== false,
     lang: document.getElementById('langSelect')?.value || 'bilingual',
     rateUsdToKhr: document.getElementById('rateUsdToKhr')?.value || 4100,
-    rateKhrToUsd: document.getElementById('rateKhrToUsd')?.value || 4000
+    rateKhrToUsd: document.getElementById('rateKhrToUsd')?.value || 4000,
+    taskType: document.querySelector('input[name="taskType"]:checked')?.value || 'Delivery'
   };
   localStorage.setItem('pod_form_state', JSON.stringify(state));
   updateCalcRateNote();
@@ -2563,8 +2744,14 @@ function loadState() {
         const cni = document.getElementById('companyNameInput');
         if (cni) cni.value = state.companyName;
       }
-      if (state.senderName !== undefined) document.getElementById('senderName').value = state.senderName;
-      if (state.receiverName !== undefined) document.getElementById('receiverName').value = state.receiverName;
+      if (state.senderName !== undefined) {
+        if (state.taskType === 'Collection') {
+          document.getElementById('senderName').value = '';
+        } else {
+          document.getElementById('senderName').value = state.senderName;
+        }
+      }
+      // if (state.receiverName !== undefined) document.getElementById('receiverName').value = state.receiverName; // Request: do not pre-fill
       if (state.receiverContact !== undefined) document.getElementById('receiverContact').value = state.receiverContact;
       if (state.deliveryLoc !== undefined) document.getElementById('deliveryLoc').value = state.deliveryLoc;
       if (state.deliveryTitle !== undefined) document.getElementById('deliveryTitle').value = state.deliveryTitle;
@@ -2608,6 +2795,12 @@ function loadState() {
         const r2 = document.getElementById('rateKhrToUsd');
         if (r2) r2.value = state.rateKhrToUsd;
       }
+      
+      if (state.taskType !== undefined) {
+        const rad = document.querySelector(`input[name="taskType"][value="${state.taskType}"]`);
+        if (rad) rad.checked = true;
+      }
+      if (typeof updateTaskToggleUI === 'function') updateTaskToggleUI();
       
       const dot = document.getElementById('syncStatusDot');
       const txt = document.getElementById('syncStatusText');
@@ -2696,6 +2889,45 @@ function applyLogo(dataUrl) {
   if (preview) preview.src = dataUrl;
   if (previewContainer) previewContainer.style.display = 'flex';
   if (uploadBox) uploadBox.style.borderStyle = 'solid';
+}
+function submitCollection() {
+  const loc = document.getElementById('deliveryLoc').value.trim();
+  if (!loc) {
+    customAlert("សូមបញ្ចូលទីតាំងប្រមូល / Please enter the Collection Location");
+    return;
+  }
+  
+  const docId = 'COL-' + Date.now().toString().slice(-6);
+  
+  const docData = {
+    id: docId,
+    timestamp: new Date().toISOString(),
+    senderName: document.getElementById('senderName').value.trim(),
+    sendDate: new Date().toISOString().split('T')[0],
+    receiverName: '',
+    receiverContact: document.getElementById('receiverContact').value.trim(),
+    deliveryLoc: loc,
+    deliveryTitle: document.getElementById('deliveryTitle').value.trim(),
+    totalPages: 0,
+    itemData: [],
+    isVoided: false,
+    synced: false,
+    taskType: 'Collection'
+  };
+  
+  let history = JSON.parse(localStorage.getItem('pod_document_history') || '[]');
+  history.push(docData);
+  localStorage.setItem('pod_document_history', JSON.stringify(history));
+  
+  if (typeof syncToCloud === 'function') syncToCloud();
+  
+  customAlert("សំណើសុំប្រមូលឯកសារត្រូវបានបញ្ជូន / Collection request submitted successfully!");
+  
+  document.getElementById('senderName').value = '';
+  document.getElementById('receiverContact').value = '';
+  document.getElementById('deliveryLoc').value = '';
+  document.getElementById('deliveryTitle').value = '';
+  saveState();
 }
 
 function resetLogoDOM() {
@@ -2843,6 +3075,10 @@ function clearSavedData() {
     const msgChk = document.getElementById('showFooterMsg');
     if (msgChk) msgChk.checked = true;
     toggleFooterMsg();
+    
+    const taskTypeRad = document.getElementById('typeDelivery');
+    if (taskTypeRad) taskTypeRad.checked = true;
+    if (typeof updateTaskToggleUI === 'function') updateTaskToggleUI();
     
     rowCount = 1;
     itemData.length = 0;
@@ -3420,7 +3656,6 @@ function initCalcDrag() {
 
   window.syncToCloud = async function() {
     if (typeof saveState === 'function') saveState();
-    if (typeof saveDocumentHistory === 'function') saveDocumentHistory();
 
     const url = "https://script.google.com/macros/s/AKfycbwq1lBS0jKE7cnnk72tgoJGiF6mk0FwQ0F9QSAIr3RuBPT5j65faYaex7THuJYfjyvrCw/exec";
     const statusDot = document.getElementById('syncStatusDot');
