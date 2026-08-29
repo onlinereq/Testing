@@ -20,6 +20,7 @@
       --white: #FFFFFF;
       --border: #E6E2D3;
       --success: #10B981;
+      --warning: #F59E0B;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -28,18 +29,22 @@
       display: flex; flex-direction: column; height: 100vh; width: 100vw;
       overflow: hidden; overscroll-behavior-y: none;
       -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      padding-left: env(safe-area-inset-left, 0px);
+      padding-right: env(safe-area-inset-right, 0px);
     }
     
     /* Setup Screen */
     #setupScreen {
       display: flex; flex-direction: column; justify-content: center; align-items: center;
-      height: 100vh; padding: 2rem; background: var(--bg); text-align: center;
+      height: 100%; padding: 2rem; background: var(--bg); text-align: center;
       position: absolute; inset: 0; z-index: 50;
     }
     #setupScreen h1 { font-size: 1.8rem; margin-bottom: 0.5rem; color: var(--dark); }
     #setupScreen p { color: #64748B; margin-bottom: 2rem; font-size: 1rem; }
     #messengerNameInput {
-      width: 100%; padding: 1rem; border: 2px solid var(--border); border-radius: 12px;
+      width: 100%; max-width: 400px; padding: 1rem; border: 2px solid var(--border); border-radius: 12px;
       font-size: 1.2rem; font-family: 'DM Sans', sans-serif; text-align: center;
       outline: none; transition: border-color 0.2s; -webkit-user-select: auto; user-select: auto;
       background: var(--white); appearance: none; color: var(--dark); cursor: pointer;
@@ -47,7 +52,7 @@
     #messengerNameInput:focus { border-color: var(--primary); }
     .btn-big {
       background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white; border: none; padding: 1rem 2rem; width: 100%; border-radius: 12px;
+      color: white; border: none; padding: 1rem 2rem; width: 100%; max-width: 400px; border-radius: 12px;
       font-size: 1.2rem; font-weight: 700; margin-top: 1.5rem; cursor: pointer;
       box-shadow: 0 8px 24px rgba(37, 99, 235, 0.25); transition: transform 0.2s;
     }
@@ -55,18 +60,24 @@
     
     /* Main Scanner Screen */
     #mainScreen {
-      display: none; flex-direction: column; height: 100vh; position: absolute; inset: 0;
+      display: none; flex-direction: column; height: 100%; position: absolute; inset: 0;
     }
     header {
       padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;
       background: var(--white); border-bottom: 1px solid var(--border);
     }
     .greeting { font-size: 1.1rem; font-weight: 700; color: var(--dark); }
-    .logout-btn { color: #94A3B8; font-size: 0.85rem; background: none; border: none; font-weight: 600; padding: 0.5rem; }
+    .logout-btn { color: #94A3B8; font-size: 0.85rem; background: none; border: none; font-weight: 600; padding: 0.5rem; cursor: pointer; }
     
+    #offlineBanner {
+      display: none;
+      background: var(--warning); color: var(--dark); font-weight: 600;
+      text-align: center; padding: 0.5rem; font-size: 0.9rem;
+    }
+
     .scan-area {
       flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
-      padding: 2rem; background: #F1F5F9;
+      padding: 2rem; background: #F1F5F9; position: relative;
     }
     
     #reader-container {
@@ -74,7 +85,7 @@
       overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.15); display: none;
       position: relative;
     }
-    #reader { width: 100%; height: 100%; }
+    #reader { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
     #reader video { object-fit: cover !important; width: 100% !important; height: 100% !important; border-radius: 24px; }
     
     .tap-to-scan {
@@ -96,7 +107,7 @@
     
     .cancel-btn {
       display: none; margin-top: 2rem; background: var(--white); border: 1px solid var(--border);
-      padding: 0.8rem 2rem; border-radius: 99px; font-weight: 600; color: #64748B;
+      padding: 0.8rem 2rem; border-radius: 99px; font-weight: 600; color: #64748B; cursor: pointer;
     }
     
     /* Overlay Success */
@@ -115,7 +126,7 @@
       background: var(--dark); color: white; padding: 0.8rem 1.5rem; border-radius: 99px;
       font-weight: 600; transition: bottom 0.4s; z-index: 200; white-space: nowrap;
     }
-    .toast.show { bottom: 2rem; }
+    .toast.show { bottom: max(2rem, env(safe-area-inset-bottom, 2rem)); }
   </style>
 </head>
 <body>
@@ -139,6 +150,10 @@
     <div class="greeting" id="greetingText">Hello</div>
     <button class="logout-btn" onclick="logout()">Change Name</button>
   </header>
+  
+  <div id="offlineBanner">
+    Offline Mode: Scans will be saved locally and sent when you reconnect.
+  </div>
   
   <div class="scan-area">
     <!-- Big Button -->
@@ -179,14 +194,75 @@
   let html5QrcodeScanner = null;
   let isScanning = false;
   
+  // Offline Queue State
+  let offlineQueue = JSON.parse(localStorage.getItem('offlineQueue') || '[]');
+  
   // Init
   if(messengerName) {
     showMainScreen();
   } else {
     fetchMessengers();
   }
+
+  // Event Listeners for Offline Mode
+  window.addEventListener('online', updateNetworkStatus);
+  window.addEventListener('offline', updateNetworkStatus);
+  updateNetworkStatus();
+
+  function updateNetworkStatus() {
+    const banner = document.getElementById('offlineBanner');
+    if (navigator.onLine) {
+      banner.style.display = 'none';
+      syncOfflineQueue();
+    } else {
+      banner.style.display = 'block';
+    }
+  }
+
+  async function syncOfflineQueue() {
+    if (offlineQueue.length === 0) return;
+    
+    showToast(`Syncing ${offlineQueue.length} pending scans...`);
+    let syncedCount = 0;
+    
+    // Copy the queue so we don't manipulate it while iterating
+    const currentQueue = [...offlineQueue];
+    
+    for (const scan of currentQueue) {
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ 
+            action: 'markDelivered', 
+            id: scan.id, 
+            messengerName: scan.messengerName,
+            deviceId: scan.deviceId,
+            timestamp: scan.timestamp
+          })
+        });
+        const json = await res.json();
+        if (json.success || json.message === 'Already delivered') {
+          // Remove from original queue
+          offlineQueue = offlineQueue.filter(q => q.id !== scan.id);
+          localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue));
+          syncedCount++;
+        }
+      } catch (e) {
+        // If network fails during sync, stop syncing
+        break;
+      }
+    }
+    
+    if (syncedCount > 0) {
+      showToast(`Successfully synced ${syncedCount} scans!`);
+    }
+  }
   
   async function fetchMessengers() {
+    if (!navigator.onLine) {
+      document.getElementById('messengerNameInput').innerHTML = '<option value="">Cannot load names while offline</option>';
+      return;
+    }
     try {
       const res = await fetch(API_URL + "?action=getMessengers");
       const json = await res.json();
@@ -204,7 +280,7 @@
   
   function saveName() {
     const name = document.getElementById('messengerNameInput').value.trim();
-    if(!name) { showToast("Please enter your name"); return; }
+    if(!name) { showToast("Please select your name"); return; }
     messengerName = name;
     localStorage.setItem('messengerName', messengerName);
     showMainScreen();
@@ -215,72 +291,111 @@
     messengerName = '';
     document.getElementById('setupScreen').style.display = 'flex';
     document.getElementById('mainScreen').style.display = 'none';
+    fetchMessengers();
   }
   
   function showMainScreen() {
     document.getElementById('setupScreen').style.display = 'none';
     document.getElementById('mainScreen').style.display = 'flex';
     document.getElementById('greetingText').innerText = `Hello, ${messengerName}`;
+    
+    // Auto-start scanner
+    setTimeout(() => {
+      startScanner();
+    }, 500); // Allow UI to render first
   }
   
-  function startScanner() {
+  async function startScanner() {
     document.getElementById('btnStartScan').style.display = 'none';
     document.getElementById('reader-container').style.display = 'block';
     document.getElementById('btnCancelScan').style.display = 'block';
     
     if(!html5QrcodeScanner) {
-      html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 15, qrbox: {width: 280, height: 280}, aspectRatio: 1.0 }, false);
+      html5QrcodeScanner = new Html5Qrcode("reader");
     }
-    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-    isScanning = true;
+    
+    try {
+      await html5QrcodeScanner.start(
+        { facingMode: "environment" },
+        { fps: 15, qrbox: { width: 280, height: 280 }, aspectRatio: 1.0 },
+        onScanSuccess,
+        onScanFailure
+      );
+      isScanning = true;
+    } catch(err) {
+      showToast("Error starting camera: " + err);
+      resetScannerUI();
+    }
   }
   
-  function stopScanner() {
+  async function stopScanner() {
     if(html5QrcodeScanner && isScanning) {
-      html5QrcodeScanner.pause(); // Just pause to avoid unmount issues, or clear
-      html5QrcodeScanner.clear().catch(e=>{});
+      try {
+        await html5QrcodeScanner.stop();
+      } catch (err) {
+        console.error("Failed to stop scanner", err);
+      }
     }
     isScanning = false;
-    document.getElementById('btnStartScan').style.display = 'flex';
-    document.getElementById('reader-container').style.display = 'none';
-    document.getElementById('btnCancelScan').style.display = 'none';
+    resetScannerUI();
   }
   
   async function onScanSuccess(decodedText) {
     if(!isScanning) return;
-    isScanning = false;
-    html5QrcodeScanner.pause();
     
+    // Stop scanning immediately on success
+    isScanning = false;
+    try {
+      await html5QrcodeScanner.stop();
+    } catch(err) {}
+    
+    showSuccessOverlay(decodedText);
+    resetScannerUI();
+    
+    const payload = {
+      id: decodedText,
+      messengerName: messengerName,
+      deviceId: deviceId,
+      timestamp: new Date().toISOString()
+    };
+
+    if (!navigator.onLine) {
+      queueOffline(payload);
+      return;
+    }
+    
+    // Show toast for online sending, though overlay is already shown
     showToast(`Sending: ${decodedText}...`);
     
     try {
       const res = await fetch(API_URL, {
         method: 'POST',
-        body: JSON.stringify({ 
-          action: 'markDelivered', 
-          id: decodedText, 
-          messengerName: messengerName,
-          deviceId: deviceId
-        })
+        body: JSON.stringify({ action: 'markDelivered', ...payload })
       });
       const json = await res.json();
       
-      if(json.success || json.message === 'Already delivered') {
-        showSuccessOverlay(decodedText);
-      } else {
-        showToast('Error: ' + json.error);
-        setTimeout(startScanner, 2000); // restart scanner
+      if(!json.success && json.message !== 'Already delivered') {
+        showToast('Error on server: ' + json.error);
+        queueOffline(payload); // Queue it if server failed temporarily
       }
     } catch(e) {
-      showToast('Network error');
-      setTimeout(startScanner, 2000); // restart scanner
+      showToast('Network error, saving offline');
+      queueOffline(payload);
     }
-    
-    html5QrcodeScanner.clear().catch(e=>{});
-    resetScannerUI();
   }
   
-  function onScanFailure(error) { }
+  function queueOffline(payload) {
+    // Check if already in queue
+    if (!offlineQueue.some(item => item.id === payload.id)) {
+      offlineQueue.push(payload);
+      localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue));
+      showToast(`Saved offline: ${payload.id}`);
+    }
+  }
+
+  function onScanFailure(error) { 
+    // Ignore routine scan failures
+  }
   
   function resetScannerUI() {
     document.getElementById('btnStartScan').style.display = 'flex';
@@ -297,6 +412,8 @@
     
     setTimeout(() => {
       overlay.classList.remove('show');
+      // Auto-restart scanner for the next item
+      startScanner();
     }, 2500);
   }
   
