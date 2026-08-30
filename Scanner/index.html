@@ -102,7 +102,26 @@
     }
     #reader { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; position: relative; }
     #reader video { object-fit: cover !important; width: 100% !important; height: 100% !important; position: absolute; z-index: 10; }
-    #reader svg { z-index: 11 !important; }
+    #reader svg { z-index: 11 !important; display: none !important; }
+    
+    #trackingBox {
+      position: absolute; top: 50%; left: 50%; width: 250px; height: 250px;
+      transform: translate(-50%, -50%); border: 3px solid rgba(255,255,255,0.8);
+      border-radius: 24px; box-shadow: 0 0 0 4000px rgba(0,0,0,0.5);
+      z-index: 15; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      pointer-events: none;
+    }
+    #trackingBox::after {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: var(--primary); box-shadow: 0 0 15px var(--primary);
+      animation: scanLaser 2s linear infinite;
+    }
+    @keyframes scanLaser {
+      0% { top: 0; opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
     
     .tap-to-scan {
       width: 200px; height: 200px; border-radius: 8px;
@@ -209,6 +228,7 @@
     <!-- Camera View -->
     <div id="reader-container">
       <div id="reader"></div>
+      <div id="trackingBox"></div>
     </div>
     <button class="cancel-btn" id="btnCancelScan" onclick="stopScanner()">Cancel</button>
   </div>
@@ -362,11 +382,21 @@
     try {
       await html5QrcodeScanner.start(
         { facingMode: "environment" },
-        { fps: 15, qrbox: { width: 250, height: 250 } },
+        { fps: 15 },
         onScanSuccess,
         onScanFailure
       );
       isScanning = true;
+      
+      // Reset tracking box
+      const box = document.getElementById('trackingBox');
+      if (box) {
+         box.style.left = '50%';
+         box.style.top = '50%';
+         box.style.width = '250px';
+         box.style.height = '250px';
+         box.style.transform = 'translate(-50%, -50%)';
+      }
     } catch(err) {
       showToast("Error starting camera: " + err);
       resetScannerUI();
@@ -388,8 +418,87 @@
   let lastInvalidQR = '';
   let recentScans = new Set();
   
-  async function onScanSuccess(decodedText) {
+  async function onScanSuccess(decodedText, decodedResult) {
     if(!isScanning) return;
+    
+    // Attempt tracking & auto zoom
+    if (decodedResult && decodedResult.result && decodedResult.result.points) {
+      try {
+        const points = decodedResult.result.points;
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (let p of points) {
+           if (p.x < minX) minX = p.x;
+           if (p.y < minY) minY = p.y;
+           if (p.x > maxX) maxX = p.x;
+           if (p.y > maxY) maxY = p.y;
+        }
+        
+        const box = document.getElementById('trackingBox');
+        const reader = document.getElementById('reader');
+        const video = reader.querySelector('video');
+        if (video && box) {
+          const videoRatio = video.videoWidth / video.videoHeight;
+          const containerRatio = video.clientWidth / video.clientHeight;
+          let renderWidth, renderHeight, xOffset = 0, yOffset = 0;
+          
+          if (containerRatio > videoRatio) {
+              renderWidth = video.clientWidth;
+              renderHeight = video.clientWidth / videoRatio;
+              yOffset = (video.clientHeight - renderHeight) / 2;
+          } else {
+              renderHeight = video.clientHeight;
+              renderWidth = video.clientHeight * videoRatio;
+              xOffset = (video.clientWidth - renderWidth) / 2;
+          }
+          
+          const scaleX = renderWidth / video.videoWidth;
+          const scaleY = renderHeight / video.videoHeight;
+          
+          let screenMinX = minX * scaleX + xOffset;
+          let screenMinY = minY * scaleY + yOffset;
+          let screenMaxX = maxX * scaleX + xOffset;
+          let screenMaxY = maxY * scaleY + yOffset;
+          
+          const padding = 20;
+          screenMinX -= padding;
+          screenMinY -= padding;
+          screenMaxX += padding;
+          screenMaxY += padding;
+          
+          box.style.transform = `translate(0, 0)`;
+          box.style.left = screenMinX + 'px';
+          box.style.top = screenMinY + 'px';
+          box.style.width = (screenMaxX - screenMinX) + 'px';
+          box.style.height = (screenMaxY - screenMinY) + 'px';
+          
+          setTimeout(() => {
+              box.style.left = '50%';
+              box.style.top = '50%';
+              box.style.width = '250px';
+              box.style.height = '250px';
+              box.style.transform = 'translate(-50%, -50%)';
+          }, 800);
+          
+          const qrWidth = maxX - minX;
+          if (html5QrcodeScanner.getRunningTrack) {
+             const track = html5QrcodeScanner.getRunningTrack();
+             if (track) {
+                 const caps = track.getCapabilities();
+                 if (caps.zoom) {
+                     const settings = track.getSettings();
+                     let currentZoom = settings.zoom || 1;
+                     if (qrWidth < video.videoWidth * 0.25 && currentZoom < caps.zoom.max) {
+                         let newZoom = Math.min(caps.zoom.max, currentZoom + 0.5);
+                         track.applyConstraints({ advanced: [{ zoom: newZoom }] }).catch(e => console.log(e));
+                     }
+                 }
+             }
+          }
+        }
+      } catch (e) {
+        console.error("Box tracking failed", e);
+      }
+    }
     
     if (!/^[a-z0-9]{10,30}$/.test(decodedText)) {
       if (lastInvalidQR !== decodedText) {
