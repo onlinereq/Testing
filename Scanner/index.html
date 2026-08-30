@@ -92,19 +92,17 @@
 
     .scan-area {
       flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
-      padding: 2rem; padding-bottom: 25vh; background: var(--bg); position: relative;
+      padding: 2rem; padding-bottom: 25vh; background: transparent; position: relative; z-index: 20; pointer-events: none;
     }
+    .scan-area > * { pointer-events: auto; }
     
     #reader-container {
-      width: 100%; max-width: 250px; aspect-ratio: 1/1; background: #000; border-radius: 24px;
-      overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.15); display: none;
-      position: relative;
+      position: fixed; inset: 0; width: 100%; height: 100%; background: #000;
+      display: none; z-index: 0;
     }
     #reader { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; position: relative; }
-    #reader video { object-fit: cover !important; width: 100% !important; height: 100% !important; border-radius: 24px; position: absolute; z-index: 10; }
-    /* Hide the scanner overlay injected by html5-qrcode */
-    #reader svg { display: none !important; opacity: 0 !important; }
-    .qr-shaded-region { display: none !important; }
+    #reader video { object-fit: cover !important; width: 100% !important; height: 100% !important; position: absolute; z-index: 10; }
+    #reader svg { z-index: 11 !important; }
     
     .tap-to-scan {
       width: 200px; height: 200px; border-radius: 8px;
@@ -165,6 +163,16 @@
       background: var(--dark); color: white; padding: 0.8rem 1.5rem; border-radius: 8px; min-height: 44px;
       font-weight: 600; cursor: pointer; border: none; font-size: 1rem;
     }
+
+    #flashOverlay {
+      position: fixed; inset: 0; z-index: 100; opacity: 0; pointer-events: none;
+      display: flex; justify-content: center; align-items: center; text-align: center;
+      font-size: 2rem; font-weight: 700; color: white; transition: opacity 0.3s;
+      padding: 2rem;
+    }
+    #flashOverlay.show { opacity: 1; }
+    #flashOverlay.green { background: rgba(34, 197, 94, 0.9); }
+    #flashOverlay.red { background: rgba(224, 0, 40, 0.9); }
   </style>
 </head>
 <body>
@@ -212,6 +220,8 @@
   <h2>Delivered!</h2>
   <p id="successId" style="margin-top: 0.5rem; opacity: 0.9; font-family: monospace;"></p>
 </div>
+
+<div id="flashOverlay">Message</div>
 
 <div class="toast" id="toast">Message</div>
 
@@ -352,7 +362,7 @@
     try {
       await html5QrcodeScanner.start(
         { facingMode: "environment" },
-        { fps: 15, aspectRatio: 1.0 },
+        { fps: 15, qrbox: { width: 250, height: 250 } },
         onScanSuccess,
         onScanFailure
       );
@@ -383,7 +393,7 @@
     
     if (!/^[a-z0-9]{10,30}$/.test(decodedText)) {
       if (lastInvalidQR !== decodedText) {
-        showToast("Invalid QR: Not a POD document");
+        showFlash('red', "Invalid QR:\nNot a POD document");
         lastInvalidQR = decodedText;
       }
       return; 
@@ -395,8 +405,7 @@
     recentScans.add(decodedText);
     setTimeout(() => recentScans.delete(decodedText), 5000);
     
-    if (navigator.vibrate) navigator.vibrate([100]);
-    showToast(`Scanned: ${decodedText}`);
+    showFlash('green', `Scanned:\n${decodedText}`);
     
     const payload = {
       id: decodedText,
@@ -469,6 +478,14 @@
     toast.innerText = msg;
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  function showFlash(type, msg) {
+    const flash = document.getElementById('flashOverlay');
+    flash.innerText = msg;
+    flash.className = 'show ' + type;
+    if(navigator.vibrate) navigator.vibrate(type === 'green' ? [100] : [50, 100, 50]);
+    setTimeout(() => { flash.className = ''; }, 600);
   }
 </script>
 </body>
