@@ -382,7 +382,7 @@
     try {
       await html5QrcodeScanner.start(
         { facingMode: "environment" },
-        { fps: 15 },
+        { fps: 15, aspectRatio: window.innerWidth / window.innerHeight },
         onScanSuccess,
         onScanFailure
       );
@@ -504,6 +504,7 @@
       if (lastInvalidQR !== decodedText) {
         showFlash('red', "Invalid QR:\nNot a POD document");
         lastInvalidQR = decodedText;
+        setTimeout(() => { if (lastInvalidQR === decodedText) lastInvalidQR = ''; }, 3000);
       }
       return; 
     }
