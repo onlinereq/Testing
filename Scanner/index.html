@@ -500,7 +500,7 @@
       }
     }
     
-    if (!/^[a-z0-9]{10,30}$/.test(decodedText)) {
+    if (!/^[A-Za-z0-9\-]{6,40}$/.test(decodedText)) {
       if (lastInvalidQR !== decodedText) {
         showFlash('red', "Invalid QR:\nNot a POD document");
         lastInvalidQR = decodedText;
