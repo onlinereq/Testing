@@ -90,12 +90,13 @@
       display: flex; flex-direction: column; gap: 0.5rem; z-index: 20;
     }
     
-    .logout-btn { 
+    .logout-btn, .flash-btn, .zoom-btn { 
       padding: 1rem; width: 100%; border-radius: 6px; font-size: 1rem; cursor: pointer; 
       background: var(--btn-bg); color: var(--text); display: flex; align-items: center; justify-content: center; 
       border: 2px solid var(--border-light); border-right-color: var(--border-dark); border-bottom-color: var(--border-dark);
       box-shadow: 1px 1px 0 var(--border-darker);
     }
+    .flash-btn, .zoom-btn { display: none; }
     .cancel-btn { 
       padding: 1rem; width: 100%; border-radius: 6px; font-size: 1rem; cursor: pointer; 
       background: var(--btn-bg); color: var(--text); display: none; align-items: center; justify-content: center; 
@@ -103,7 +104,7 @@
       box-shadow: 1px 1px 0 var(--border-darker);
     }
     
-    .logout-btn:active, .cancel-btn:active { 
+    .logout-btn:active, .cancel-btn:active, .flash-btn:active, .zoom-btn:active { 
       border: 2px solid var(--border-dark); border-right-color: var(--border-light); border-bottom-color: var(--border-light);
       transform: none; box-shadow: none;
       padding-top: calc(1rem + 1px); padding-left: calc(1rem + 1px); padding-bottom: calc(1rem - 1px); padding-right: calc(1rem - 1px);
@@ -155,6 +156,8 @@
     <div class="action-stack">
       <button class="tap-to-scan" id="btnStartScan" onclick="startScanner()">Tap to Scan</button>
       <button class="logout-btn" id="btnLogout" onclick="logout()">Change Name</button>
+      <button class="flash-btn" id="btnToggleFlash" onclick="toggleFlash()">Toggle Flash</button>
+      <button class="zoom-btn" id="btnToggleZoom" onclick="toggleZoom()">Toggle 2x Zoom</button>
       <button class="cancel-btn" id="btnCancelScan" onclick="stopScanner()">Cancel</button>
     </div>
   </div>
@@ -306,6 +309,9 @@
         onScanFailure
       );
       isScanning = true;
+      document.getElementById('btnToggleFlash').style.display = 'flex';
+      document.getElementById('btnToggleZoom').style.display = 'flex';
+      isZoomed = false;
       
 
     } catch(err) {
@@ -314,7 +320,39 @@
     }
   }
   
+  let isFlashOn = false;
+  function toggleFlash() {
+    if (!isScanning || !html5QrcodeScanner) return;
+    isFlashOn = !isFlashOn;
+    try {
+      if (html5QrcodeScanner.applyVideoConstraints) {
+        html5QrcodeScanner.applyVideoConstraints({ advanced: [{ torch: isFlashOn }] })
+          .catch(e => { showToast("Flash not supported"); isFlashOn = !isFlashOn; });
+      }
+    } catch(e) {
+      showToast("Flash not supported");
+      isFlashOn = !isFlashOn;
+    }
+  }
+
+  let isZoomed = false;
+  function toggleZoom() {
+    if (!isScanning) return;
+    isZoomed = !isZoomed;
+    const videoObj = document.querySelector('#reader video');
+    if (videoObj) {
+      if (isZoomed) {
+        videoObj.style.transform = 'scale(2)';
+        videoObj.style.transformOrigin = 'center';
+      } else {
+        videoObj.style.transform = 'scale(1)';
+      }
+    }
+  }
+
   async function stopScanner() {
+    isFlashOn = false;
+    isZoomed = false;
     if(html5QrcodeScanner && isScanning) {
       try {
         await html5QrcodeScanner.stop();
@@ -407,6 +445,8 @@
     document.getElementById('btnLogout').style.display = 'flex';
     document.getElementById('reader-container').style.display = 'none';
     document.getElementById('btnCancelScan').style.display = 'none';
+    document.getElementById('btnToggleFlash').style.display = 'none';
+    document.getElementById('btnToggleZoom').style.display = 'none';
   }
   
 
