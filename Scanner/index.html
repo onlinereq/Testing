@@ -69,12 +69,14 @@
     
     #offlineBanner { background: #000080; color: #ffffff; padding: 0.5rem; text-align: center; font-size: 0.8rem; margin-bottom: 1rem; display: none; border-radius: 6px; font-weight: bold; }
     
-    .scan-area { flex: 1; display: flex; flex-direction: column; position: relative; }
+    .scan-area { 
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; 
+      gap: 1rem; overflow-y: auto; padding-bottom: 2rem; width: 100%;
+    }
     
     #reader-container { 
-      display: none; background: #000; position: absolute; z-index: 10; 
-      top: 40%; left: 2rem; right: 2rem; transform: translateY(-50%);
-      aspect-ratio: 1 / 1;
+      display: none; background: #000; position: relative; z-index: 10; 
+      width: 100%; aspect-ratio: 1 / 1; flex-shrink: 0;
       border-radius: 16px; overflow: hidden; 
       border: 2px solid var(--border-dark);
       border-right-color: var(--border-light);
@@ -86,7 +88,7 @@
 
     
     .action-stack {
-      position: absolute; bottom: 8rem; left: 2rem; right: 2rem;
+      width: 100%; position: relative;
       display: flex; flex-direction: column; gap: 0.5rem; z-index: 20;
     }
     
