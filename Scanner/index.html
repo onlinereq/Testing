@@ -13,15 +13,25 @@
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
     :root {
-      --bg: #fff;
-      --text: #000;
-      --border: #ccc;
-      --btn-bg: #eee;
+      --bg: #c0c0c0;
+      --text: #000000;
+      --border-light: #ffffff;
+      --border-dark: #808080;
+      --border-darker: #000000;
+      --btn-bg: #c0c0c0;
+      --desktop: #008080;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 1rem; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    body { 
+      font-family: 'Pixelated MS Sans Serif', 'MS Sans Serif', Tahoma, sans-serif; 
+      background: var(--bg); color: var(--text); padding: 1rem; 
+      display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+    }
     
-    #setupScreen, #mainScreen {
+    #setupScreen {
+      display: flex; flex-direction: column; height: 100%; justify-content: center;
+    }
+    #mainScreen {
       display: flex; flex-direction: column; height: 100%;
     }
     #mainScreen { display: none; }
@@ -31,33 +41,80 @@
     
     .name-grid { display: flex; flex-direction: column; gap: 0.5rem; overflow-y: auto; }
     button, .tap-to-scan, .name-btn {
-      padding: 1rem; border: 1px solid var(--border); border-radius: 6px;
+      padding: 1rem; border-radius: 6px;
       background: var(--btn-bg); color: var(--text); font-size: 1rem; cursor: pointer;
       width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       display: flex; align-items: center; justify-content: center; font-family: inherit;
+      font-weight: normal;
+      border: 2px solid var(--border-light);
+      border-right-color: var(--border-dark);
+      border-bottom-color: var(--border-dark);
+      box-shadow: 1px 1px 0 var(--border-darker);
     }
-    button:active, .tap-to-scan:active, .name-btn:active { background: #ddd; }
-    .tap-to-scan { background: var(--text); color: var(--bg); font-size: 1.2rem; margin: auto 0; font-weight: bold; }
+    button:active, .tap-to-scan:active, .name-btn:active { 
+      border: 2px solid var(--border-dark);
+      border-right-color: var(--border-light);
+      border-bottom-color: var(--border-light);
+      transform: none;
+      box-shadow: none;
+      padding-top: calc(1rem + 1px);
+      padding-left: calc(1rem + 1px);
+      padding-bottom: calc(1rem - 1px);
+      padding-right: calc(1rem - 1px);
+    }
+    .tap-to-scan { font-size: 1.2rem; margin: auto 0; font-weight: bold; }
     
-    .delivery-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-    .greeting { font-weight: bold; }
-    .logout-btn { padding: 0.5rem; width: auto; font-size: 0.9rem; margin-left: 1rem; }
+    .delivery-info { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 20vh; }
+    .greeting { font-weight: bold; font-size: 2rem; }
     
-    #offlineBanner { background: #ff0; color: #000; padding: 0.5rem; text-align: center; font-size: 0.8rem; margin-bottom: 1rem; display: none; border-radius: 6px; }
+    #offlineBanner { background: #000080; color: #ffffff; padding: 0.5rem; text-align: center; font-size: 0.8rem; margin-bottom: 1rem; display: none; border-radius: 6px; font-weight: bold; }
     
     .scan-area { flex: 1; display: flex; flex-direction: column; position: relative; }
     
-    #reader-container { flex: 1; display: none; background: #000; position: absolute; inset: 0; z-index: 10; }
-    #reader { width: 100%; height: 100%; }
-    #reader video { object-fit: cover !important; width: 100% !important; height: 100% !important; }
+    #reader-container { 
+      display: none; background: #000; position: absolute; z-index: 10; 
+      top: 40%; left: 2rem; right: 2rem; transform: translateY(-50%);
+      aspect-ratio: 1 / 1;
+      border-radius: 16px; overflow: hidden; 
+      border: 2px solid var(--border-dark);
+      border-right-color: var(--border-light);
+      border-bottom-color: var(--border-light);
+    }
+    #reader { width: 100%; height: 100%; position: relative; }
+    #reader video { object-fit: cover !important; width: 100% !important; height: 100% !important; filter: none; }
     
-    .cancel-btn { position: absolute; bottom: 1rem; left: 1rem; width: calc(100% - 2rem); z-index: 20; background: #fff; color: #000; border: none; font-weight: bold; }
+
+    
+    .action-stack {
+      position: absolute; bottom: 8rem; left: 2rem; right: 2rem;
+      display: flex; flex-direction: column; gap: 0.5rem; z-index: 20;
+    }
+    
+    .logout-btn { 
+      padding: 1rem; width: 100%; border-radius: 6px; font-size: 1rem; cursor: pointer; 
+      background: var(--btn-bg); color: var(--text); display: flex; align-items: center; justify-content: center; 
+      border: 2px solid var(--border-light); border-right-color: var(--border-dark); border-bottom-color: var(--border-dark);
+      box-shadow: 1px 1px 0 var(--border-darker);
+    }
+    .cancel-btn { 
+      padding: 1rem; width: 100%; border-radius: 6px; font-size: 1rem; cursor: pointer; 
+      background: var(--btn-bg); color: var(--text); display: none; align-items: center; justify-content: center; 
+      border: 2px solid var(--border-light); border-right-color: var(--border-dark); border-bottom-color: var(--border-dark);
+      box-shadow: 1px 1px 0 var(--border-darker);
+    }
+    
+    .logout-btn:active, .cancel-btn:active { 
+      border: 2px solid var(--border-dark); border-right-color: var(--border-light); border-bottom-color: var(--border-light);
+      transform: none; box-shadow: none;
+      padding-top: calc(1rem + 1px); padding-left: calc(1rem + 1px); padding-bottom: calc(1rem - 1px); padding-right: calc(1rem - 1px);
+    }
     
     /* Toast */
     .toast {
       position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%);
-      background: #000; color: #fff; padding: 0.5rem 1rem; border-radius: 6px;
+      background: #ffffcc; color: #000; padding: 0.5rem 1rem; border-radius: 6px;
       display: none; white-space: nowrap; z-index: 200; font-size: 0.9rem;
+      border: 1px solid #000; box-shadow: 2px 2px 0 rgba(0,0,0,0.2);
     }
     .toast.show { display: block; }
     
@@ -67,8 +124,8 @@
       font-size: 1.5rem; color: #fff; padding: 2rem; font-weight: bold;
     }
     #flashOverlay.show { display: flex; }
-    #flashOverlay.green { background: rgba(0, 128, 0, 0.9); }
-    #flashOverlay.red { background: rgba(255, 0, 0, 0.9); }
+    #flashOverlay.green { background: #008000; }
+    #flashOverlay.red { background: #800000; }
   </style>
 </head>
 <body>
@@ -89,13 +146,15 @@
   <div class="scan-area">
     <div class="delivery-info">
       <div class="greeting" id="greetingText">Name</div>
-      <button class="logout-btn" onclick="logout()">Change</button>
     </div>
-    
-    <button class="tap-to-scan" id="btnStartScan" onclick="startScanner()">Tap to Scan</button>
     
     <div id="reader-container">
       <div id="reader"></div>
+    </div>
+
+    <div class="action-stack">
+      <button class="tap-to-scan" id="btnStartScan" onclick="startScanner()">Tap to Scan</button>
+      <button class="logout-btn" id="btnLogout" onclick="logout()">Change Name</button>
       <button class="cancel-btn" id="btnCancelScan" onclick="stopScanner()">Cancel</button>
     </div>
   </div>
@@ -231,6 +290,7 @@
   
   async function startScanner() {
     document.getElementById('btnStartScan').style.display = 'none';
+    document.getElementById('btnLogout').style.display = 'none';
     document.getElementById('reader-container').style.display = 'block';
     document.getElementById('btnCancelScan').style.display = 'flex';
     
@@ -272,27 +332,32 @@
   async function onScanSuccess(decodedText, decodedResult) {
     if(!isScanning) return;
     
-
-    
-    if (!/^[A-Za-z0-9\-]{6,40}$/.test(decodedText)) {
+    // Accept ONLY our unique QR code format (Must start with POD-)
+    if (!/^POD\-[A-Za-z0-9\-]{3,40}$/.test(decodedText)) {
       if (lastInvalidQR !== decodedText) {
-        showFlash('red', "Invalid QR:\nNot a POD document");
+        showFlash('red', "Invalid QR:\nUnrecognized format");
         lastInvalidQR = decodedText;
         setTimeout(() => { if (lastInvalidQR === decodedText) lastInvalidQR = ''; }, 3000);
       }
       return; 
     }
     
-    if (recentScans.has(decodedText)) return;
+    let scannedId = decodedText;
+    
+    if (recentScans.has(scannedId)) return;
     
     // Add to recent scans and allow rescan after 5 seconds
-    recentScans.add(decodedText);
-    setTimeout(() => recentScans.delete(decodedText), 5000);
+    recentScans.add(scannedId);
+    setTimeout(() => recentScans.delete(scannedId), 5000);
     
-    showFlash('green', `Scanned:\n${decodedText}`);
+    await submitScan(scannedId);
+  }
+
+  async function submitScan(scannedId) {
+    showFlash('green', `Scanned:\n${scannedId}`);
     
     const payload = {
-      id: decodedText,
+      id: scannedId,
       messengerName: messengerName,
       deviceId: deviceId,
       timestamp: new Date().toISOString()
@@ -314,9 +379,9 @@
         showToast('Error on server: ' + json.error);
         queueOffline(payload);
       } else if (json.message === 'Already delivered') {
-        showToast('Already delivered: ' + decodedText);
+        showToast('Already delivered: ' + scannedId);
       } else {
-        showToast('Delivered: ' + decodedText);
+        showToast('Delivered: ' + scannedId);
       }
     } catch(e) {
       showToast('Network error, saving offline');
@@ -339,6 +404,7 @@
   
   function resetScannerUI() {
     document.getElementById('btnStartScan').style.display = 'flex';
+    document.getElementById('btnLogout').style.display = 'flex';
     document.getElementById('reader-container').style.display = 'none';
     document.getElementById('btnCancelScan').style.display = 'none';
   }
